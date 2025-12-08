@@ -1,91 +1,380 @@
+
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, Platform } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from "react-native";
 import { IconSymbol } from "@/components/IconSymbol";
-import { GlassView } from "expo-glass-effect";
-import { useTheme } from "@react-navigation/native";
+import { colors } from "@/styles/commonStyles";
 
 export default function ProfileScreen() {
-  const theme = useTheme();
-
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={[
-          styles.contentContainer,
-          Platform.OS !== 'ios' && styles.contentContainerWithTabBar
-        ]}
-      >
-        <GlassView style={[
-          styles.profileHeader,
-          Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-        ]} glassEffectStyle="regular">
-          <IconSymbol ios_icon_name="person.circle.fill" android_material_icon_name="person" size={80} color={theme.colors.primary} />
-          <Text style={[styles.name, { color: theme.colors.text }]}>John Doe</Text>
-          <Text style={[styles.email, { color: theme.dark ? '#98989D' : '#666' }]}>john.doe@example.com</Text>
-        </GlassView>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Profile</Text>
+      </View>
 
-        <GlassView style={[
-          styles.section,
-          Platform.OS !== 'ios' && { backgroundColor: theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }
-        ]} glassEffectStyle="regular">
-          <View style={styles.infoRow}>
-            <IconSymbol ios_icon_name="phone.fill" android_material_icon_name="phone" size={20} color={theme.dark ? '#98989D' : '#666'} />
-            <Text style={[styles.infoText, { color: theme.colors.text }]}>+1 (555) 123-4567</Text>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <View style={styles.avatarContainer}>
+            <IconSymbol 
+              ios_icon_name="person.circle.fill" 
+              android_material_icon_name="account-circle" 
+              size={80} 
+              color={colors.primary} 
+            />
+            <TouchableOpacity style={styles.editAvatarButton} activeOpacity={0.7}>
+              <IconSymbol 
+                ios_icon_name="camera.fill" 
+                android_material_icon_name="camera-alt" 
+                size={16} 
+                color="#FFFFFF" 
+              />
+            </TouchableOpacity>
           </View>
-          <View style={styles.infoRow}>
-            <IconSymbol ios_icon_name="location.fill" android_material_icon_name="location-on" size={20} color={theme.dark ? '#98989D' : '#666'} />
-            <Text style={[styles.infoText, { color: theme.colors.text }]}>San Francisco, CA</Text>
+          <Text style={styles.profileName}>John Doe</Text>
+          <Text style={styles.profileEmail}>john.doe@example.com</Text>
+          
+          {/* Stats */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>12</Text>
+              <Text style={styles.statLabel}>Trips</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>4.8</Text>
+              <Text style={styles.statLabel}>Rating</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>8</Text>
+              <Text style={styles.statLabel}>Deliveries</Text>
+            </View>
           </View>
-        </GlassView>
+        </View>
+
+        {/* Account Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <View style={styles.menuIconContainer}>
+              <IconSymbol 
+                ios_icon_name="person" 
+                android_material_icon_name="person" 
+                size={20} 
+                color={colors.primary} 
+              />
+            </View>
+            <Text style={styles.menuText}>Edit Profile</Text>
+            <IconSymbol 
+              ios_icon_name="chevron.right" 
+              android_material_icon_name="chevron-right" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <View style={styles.menuIconContainer}>
+              <IconSymbol 
+                ios_icon_name="checkmark.shield" 
+                android_material_icon_name="verified-user" 
+                size={20} 
+                color={colors.primary} 
+              />
+            </View>
+            <Text style={styles.menuText}>Verification</Text>
+            <IconSymbol 
+              ios_icon_name="chevron.right" 
+              android_material_icon_name="chevron-right" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <View style={styles.menuIconContainer}>
+              <IconSymbol 
+                ios_icon_name="star" 
+                android_material_icon_name="star" 
+                size={20} 
+                color={colors.primary} 
+              />
+            </View>
+            <Text style={styles.menuText}>Reviews</Text>
+            <IconSymbol 
+              ios_icon_name="chevron.right" 
+              android_material_icon_name="chevron-right" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Settings Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Settings</Text>
+          
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <View style={styles.menuIconContainer}>
+              <IconSymbol 
+                ios_icon_name="bell" 
+                android_material_icon_name="notifications" 
+                size={20} 
+                color={colors.primary} 
+              />
+            </View>
+            <Text style={styles.menuText}>Notifications</Text>
+            <IconSymbol 
+              ios_icon_name="chevron.right" 
+              android_material_icon_name="chevron-right" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <View style={styles.menuIconContainer}>
+              <IconSymbol 
+                ios_icon_name="lock" 
+                android_material_icon_name="lock" 
+                size={20} 
+                color={colors.primary} 
+              />
+            </View>
+            <Text style={styles.menuText}>Privacy & Security</Text>
+            <IconSymbol 
+              ios_icon_name="chevron.right" 
+              android_material_icon_name="chevron-right" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <View style={styles.menuIconContainer}>
+              <IconSymbol 
+                ios_icon_name="creditcard" 
+                android_material_icon_name="payment" 
+                size={20} 
+                color={colors.primary} 
+              />
+            </View>
+            <Text style={styles.menuText}>Payment Methods</Text>
+            <IconSymbol 
+              ios_icon_name="chevron.right" 
+              android_material_icon_name="chevron-right" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Support Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Support</Text>
+          
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <View style={styles.menuIconContainer}>
+              <IconSymbol 
+                ios_icon_name="questionmark.circle" 
+                android_material_icon_name="help" 
+                size={20} 
+                color={colors.primary} 
+              />
+            </View>
+            <Text style={styles.menuText}>Help Center</Text>
+            <IconSymbol 
+              ios_icon_name="chevron.right" 
+              android_material_icon_name="chevron-right" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <View style={styles.menuIconContainer}>
+              <IconSymbol 
+                ios_icon_name="doc.text" 
+                android_material_icon_name="description" 
+                size={20} 
+                color={colors.primary} 
+              />
+            </View>
+            <Text style={styles.menuText}>Terms & Conditions</Text>
+            <IconSymbol 
+              ios_icon_name="chevron.right" 
+              android_material_icon_name="chevron-right" 
+              size={20} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8}>
+          <IconSymbol 
+            ios_icon_name="arrow.right.square" 
+            android_material_icon_name="logout" 
+            size={20} 
+            color={colors.error} 
+          />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+
+        {/* Version */}
+        <Text style={styles.versionText}>Version 1.0.0</Text>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    // backgroundColor handled dynamically
-  },
   container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? 48 : 20,
+    paddingBottom: 16,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  scrollView: {
     flex: 1,
   },
   contentContainer: {
     padding: 20,
+    paddingBottom: 120,
   },
-  contentContainerWithTabBar: {
-    paddingBottom: 100, // Extra padding for floating tab bar
-  },
-  profileHeader: {
+  profileCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
-    borderRadius: 12,
-    padding: 32,
+    marginBottom: 24,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    elevation: 2,
+  },
+  avatarContainer: {
+    position: 'relative',
     marginBottom: 16,
-    gap: 12,
   },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    // color handled dynamically
+  editAvatarButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: colors.primary,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.card,
   },
-  email: {
-    fontSize: 16,
-    // color handled dynamically
+  profileName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
   },
-  section: {
-    borderRadius: 12,
-    padding: 20,
-    gap: 12,
+  profileEmail: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    marginBottom: 20,
   },
-  infoRow: {
+  statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    width: '100%',
+    justifyContent: 'space-around',
   },
-  infoText: {
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: colors.border,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
     fontSize: 16,
-    // color handled dynamically
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  menuItem: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.06)',
+    elevation: 1,
+  },
+  menuIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.highlight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  menuText: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  logoutButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.error,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.error,
+  },
+  versionText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });
