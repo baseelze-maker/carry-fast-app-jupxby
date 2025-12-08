@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Platform } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Platform, Switch } from "react-native";
 import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors, buttonStyles } from "@/styles/commonStyles";
@@ -10,10 +10,13 @@ export default function PostTripScreen() {
   const [formData, setFormData] = useState({
     from: '',
     to: '',
+    finalDestination: '',
     date: '',
     weight: '',
     price: '',
     notes: '',
+    canDeliverAtMainDestination: true,
+    canDeliverAtFinalDestination: true,
   });
 
   const handleSubmit = () => {
@@ -78,6 +81,64 @@ export default function PostTripScreen() {
               value={formData.to}
               onChangeText={(text) => setFormData({...formData, to: text})}
             />
+            
+            {/* Delivery Toggle for Main Destination */}
+            <View style={styles.deliveryToggle}>
+              <View style={styles.deliveryToggleLeft}>
+                <IconSymbol 
+                  ios_icon_name="shippingbox" 
+                  android_material_icon_name="local-shipping" 
+                  size={20} 
+                  color={formData.canDeliverAtMainDestination ? colors.primary : colors.textSecondary} 
+                />
+                <Text style={[styles.deliveryToggleText, !formData.canDeliverAtMainDestination && styles.deliveryToggleTextDisabled]}>
+                  Can deliver at this destination
+                </Text>
+              </View>
+              <Switch
+                value={formData.canDeliverAtMainDestination}
+                onValueChange={(value) => setFormData({...formData, canDeliverAtMainDestination: value})}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={Platform.OS === 'android' ? colors.card : undefined}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Final Destination (Optional)</Text>
+            <Text style={styles.sublabel}>
+              Specific province, city, or area within the destination country
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g., Manchester, England"
+              placeholderTextColor={colors.textSecondary}
+              value={formData.finalDestination}
+              onChangeText={(text) => setFormData({...formData, finalDestination: text})}
+            />
+            
+            {/* Delivery Toggle for Final Destination */}
+            {formData.finalDestination.length > 0 && (
+              <View style={styles.deliveryToggle}>
+                <View style={styles.deliveryToggleLeft}>
+                  <IconSymbol 
+                    ios_icon_name="shippingbox" 
+                    android_material_icon_name="local-shipping" 
+                    size={20} 
+                    color={formData.canDeliverAtFinalDestination ? colors.primary : colors.textSecondary} 
+                  />
+                  <Text style={[styles.deliveryToggleText, !formData.canDeliverAtFinalDestination && styles.deliveryToggleTextDisabled]}>
+                    Can deliver at final destination
+                  </Text>
+                </View>
+                <Switch
+                  value={formData.canDeliverAtFinalDestination}
+                  onValueChange={(value) => setFormData({...formData, canDeliverAtFinalDestination: value})}
+                  trackColor={{ false: colors.border, true: colors.primary }}
+                  thumbColor={Platform.OS === 'android' ? colors.card : undefined}
+                />
+              </View>
+            )}
           </View>
 
           <View style={styles.inputGroup}>
@@ -203,6 +264,12 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 8,
   },
+  sublabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 8,
+    marginTop: -4,
+  },
   input: {
     backgroundColor: colors.card,
     borderWidth: 1,
@@ -215,6 +282,31 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  deliveryToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+  },
+  deliveryToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  deliveryToggleText: {
+    fontSize: 14,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  deliveryToggleTextDisabled: {
+    color: colors.textSecondary,
   },
   submitButton: {
     backgroundColor: colors.primary,
