@@ -20,7 +20,7 @@ import { WidgetProvider } from "@/contexts/WidgetContext";
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)", // Ensure any route can link back to `/`
+  initialRouteName: "index", // Start with index which will redirect to login or tabs
 };
 
 export default function RootLayout() {
@@ -85,8 +85,29 @@ export default function RootLayout() {
           <WidgetProvider>
             <GestureHandlerRootView>
             <Stack>
+              {/* Index - Entry point that redirects */}
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+
+              {/* Authentication Screens */}
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="signup" options={{ headerShown: false }} />
+              <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
+
               {/* Main app with tabs */}
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+              {/* Chat Screen */}
+              <Stack.Screen
+                name="chat/[id]"
+                options={{
+                  headerShown: true,
+                  title: "Chat",
+                  presentation: "card",
+                }}
+              />
+
+              {/* Onboarding Screen */}
+              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
 
               {/* Modal Demo Screens */}
               <Stack.Screen
