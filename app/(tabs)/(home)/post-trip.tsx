@@ -164,16 +164,46 @@ export default function PostTripScreen() {
             />
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Suggested Price (Optional)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., $50"
-              placeholderTextColor={colors.textSecondary}
-              keyboardType="numeric"
-              value={formData.price}
-              onChangeText={(text) => setFormData({...formData, price: text})}
-            />
+          {/* Highlighted Price Section */}
+          <View style={styles.priceSection}>
+            <View style={styles.priceSectionHeader}>
+              <IconSymbol 
+                ios_icon_name="dollarsign.circle.fill" 
+                android_material_icon_name="attach-money" 
+                size={24} 
+                color={colors.primary} 
+              />
+              <View style={styles.priceSectionHeaderText}>
+                <Text style={styles.priceSectionTitle}>Your Delivery Fee</Text>
+                <Text style={styles.priceSectionSubtitle}>
+                  Set your suggested price - senders can accept or make a counteroffer
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.priceInputContainer}>
+              <Text style={styles.currencySymbol}>$</Text>
+              <TextInput
+                style={styles.priceInput}
+                placeholder="Enter your fee (e.g., 50)"
+                placeholderTextColor={colors.textSecondary}
+                keyboardType="numeric"
+                value={formData.price}
+                onChangeText={(text) => setFormData({...formData, price: text})}
+              />
+            </View>
+            
+            <View style={styles.priceHintCard}>
+              <IconSymbol 
+                ios_icon_name="lightbulb.fill" 
+                android_material_icon_name="lightbulb" 
+                size={16} 
+                color={colors.accent} 
+              />
+              <Text style={styles.priceHintText}>
+                Tip: Consider the distance, weight capacity, and delivery convenience when setting your fee
+              </Text>
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
@@ -307,6 +337,76 @@ const styles = StyleSheet.create({
   },
   deliveryToggleTextDisabled: {
     color: colors.textSecondary,
+  },
+  priceSection: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.15)',
+    elevation: 3,
+  },
+  priceSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 16,
+  },
+  priceSectionHeaderText: {
+    flex: 1,
+  },
+  priceSectionTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  priceSectionSubtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  priceInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingLeft: 16,
+    marginBottom: 12,
+  },
+  currencySymbol: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+    marginRight: 4,
+  },
+  priceInput: {
+    flex: 1,
+    padding: 14,
+    paddingLeft: 4,
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  priceHintCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: `${colors.accent}15`,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: `${colors.accent}30`,
+  },
+  priceHintText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.text,
+    lineHeight: 16,
   },
   submitButton: {
     backgroundColor: colors.primary,

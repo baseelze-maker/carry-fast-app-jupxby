@@ -333,6 +333,7 @@ export default function SearchScreen() {
                       </View>
                     </View>
                     <View style={styles.priceContainer}>
+                      <Text style={styles.priceLabel}>Fee</Text>
                       <Text style={styles.priceText}>${traveler.price}</Text>
                     </View>
                   </View>
@@ -413,7 +414,7 @@ export default function SearchScreen() {
                     activeOpacity={0.8}
                     onPress={() => router.push('/search/traveler-details')}
                   >
-                    <Text style={styles.contactButtonText}>View Details</Text>
+                    <Text style={styles.contactButtonText}>View Details & Send Request</Text>
                     <IconSymbol 
                       ios_icon_name="chevron.right" 
                       android_material_icon_name="chevron-right" 
@@ -750,10 +751,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  priceLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   priceText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
   },
