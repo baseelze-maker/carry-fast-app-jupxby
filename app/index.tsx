@@ -5,6 +5,7 @@ import { Redirect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { colors } from '@/styles/commonStyles';
 
+// Refreshed preview
 export default function Index() {
   const { isAuthenticated, isLoading } = useAuth();
 

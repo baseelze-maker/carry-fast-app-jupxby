@@ -25,6 +25,7 @@ export const unstable_settings = {
   initialRouteName: "index", // Start with index which will redirect to login or tabs
 };
 
+// App refresh timestamp: 2025-01-XX
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const networkState = useNetworkState();
