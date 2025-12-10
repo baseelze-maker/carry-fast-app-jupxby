@@ -43,9 +43,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('User is already authenticated:', userData.email);
       } else {
         console.log('No auth data found');
+        setIsAuthenticated(false);
+        setUser(null);
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
+      setIsAuthenticated(false);
+      setUser(null);
     } finally {
       setIsLoading(false);
       console.log('Auth check complete');
@@ -65,12 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userType: 'both',
       };
 
-      // Save to AsyncStorage
+      // Save to AsyncStorage first
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
+      console.log('User data saved to AsyncStorage');
       
+      // Then update state - this will trigger re-render
       setUser(userData);
       setIsAuthenticated(true);
-      console.log('Login successful, auth state updated');
+      console.log('Login successful, auth state updated to authenticated');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -89,12 +95,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userType: userType as 'traveler' | 'sender' | 'both',
       };
 
-      // Save to AsyncStorage
+      // Save to AsyncStorage first
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
+      console.log('User data saved to AsyncStorage');
       
+      // Then update state - this will trigger re-render
       setUser(userData);
       setIsAuthenticated(true);
-      console.log('Signup successful, auth state updated');
+      console.log('Signup successful, auth state updated to authenticated');
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
