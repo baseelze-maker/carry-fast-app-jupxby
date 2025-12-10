@@ -57,12 +57,10 @@ export default function SignUpScreen() {
     try {
       // Call the signup function from AuthContext
       await signup(fullName, email, password, userType);
-      console.log('Signup successful, navigating to main app');
+      console.log('Signup successful');
       
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        router.replace('/(tabs)/(home)');
-      }, 100);
+      // Don't manually navigate - let the index.tsx handle it
+      // The auth state change will trigger the redirect
     } catch (error) {
       console.error('Signup error:', error);
       Alert.alert('Error', 'Failed to create account. Please try again.');
