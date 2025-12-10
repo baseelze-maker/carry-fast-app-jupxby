@@ -1,13 +1,27 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from "react-native";
+import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 
 // Mock notifications
-const mockNotifications = [
+const initialNotifications = [
   {
     id: '1',
+    type: 'payment_request',
+    title: 'Payment Required',
+    message: 'Your delivery request has been accepted! Please proceed with payment of $25.',
+    sender: 'Sarah Johnson',
+    amount: '$25',
+    time: '2m ago',
+    read: false,
+    icon: 'creditcard.fill',
+    iconAndroid: 'payment',
+    iconColor: colors.warning,
+  },
+  {
+    id: '2',
     type: 'request',
     title: 'New Delivery Request',
     message: 'Mike Chen wants to send an item on your trip to London',
@@ -18,7 +32,7 @@ const mockNotifications = [
     iconColor: colors.secondary,
   },
   {
-    id: '2',
+    id: '3',
     type: 'message',
     title: 'New Message',
     message: 'Sarah Johnson: "Sure, I can deliver that for you!"',
@@ -29,7 +43,7 @@ const mockNotifications = [
     iconColor: colors.primary,
   },
   {
-    id: '3',
+    id: '4',
     type: 'accepted',
     title: 'Request Accepted',
     message: 'Emma Wilson accepted your delivery request',
@@ -40,7 +54,20 @@ const mockNotifications = [
     iconColor: colors.success,
   },
   {
-    id: '4',
+    id: '5',
+    type: 'payment_request',
+    title: 'Payment Required',
+    message: 'David Lee accepted your request. Please pay $20 to confirm the delivery.',
+    sender: 'David Lee',
+    amount: '$20',
+    time: '5h ago',
+    read: true,
+    icon: 'creditcard.fill',
+    iconAndroid: 'payment',
+    iconColor: colors.warning,
+  },
+  {
+    id: '6',
     type: 'review',
     title: 'New Review',
     message: 'David Lee left you a 5-star review',
@@ -51,7 +78,7 @@ const mockNotifications = [
     iconColor: colors.accent,
   },
   {
-    id: '5',
+    id: '7',
     type: 'reminder',
     title: 'Trip Reminder',
     message: 'Your trip to Paris is tomorrow at 10:00 AM',
@@ -62,7 +89,7 @@ const mockNotifications = [
     iconColor: colors.warning,
   },
   {
-    id: '6',
+    id: '8',
     type: 'completed',
     title: 'Delivery Completed',
     message: 'Your item was successfully delivered by John Smith',
@@ -75,7 +102,36 @@ const mockNotifications = [
 ];
 
 export default function NotificationsScreen() {
-  const unreadCount = mockNotifications.filter(n => !n.read).length;
+  const router = useRouter();
+  const [notifications, setNotifications] = useState(initialNotifications);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleMarkAllRead = () => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(n => ({ ...n, read: true }))
+    );
+  };
+
+  const handleNotificationPress = (notification: any) => {
+    // Mark as read
+    setNotifications(prevNotifications =>
+      prevNotifications.map(n =>
+        n.id === notification.id ? { ...n, read: true } : n
+      )
+    );
+
+    // Navigate based on notification type
+    if (notification.type === 'payment_request') {
+      // In a real app, this would navigate to a payment screen
+      console.log('Opening payment screen for:', notification.amount);
+      // router.push('/payment');
+    } else if (notification.type === 'message') {
+      router.push(`/chat/${notification.id}`);
+    } else if (notification.type === 'request') {
+      router.push('/trips/trip-details');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -83,7 +139,7 @@ export default function NotificationsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Notifications</Text>
         {unreadCount > 0 && (
-          <TouchableOpacity style={styles.markAllButton}>
+          <TouchableOpacity style={styles.markAllButton} onPress={handleMarkAllRead}>
             <Text style={styles.markAllText}>Mark all read</Text>
           </TouchableOpacity>
         )}
@@ -94,16 +150,16 @@ export default function NotificationsScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {mockNotifications.length > 0 ? (
-          mockNotifications.map((notification, index) => (
+        {notifications.length > 0 ? (
+          notifications.map((notification, index) => (
             <React.Fragment key={index}>
               <TouchableOpacity 
-                key={notification.id}
                 style={[
                   styles.notificationCard,
                   !notification.read && styles.unreadCard
                 ]}
                 activeOpacity={0.7}
+                onPress={() => handleNotificationPress(notification)}
               >
                 <View style={[styles.iconContainer, { backgroundColor: `${notification.iconColor}20` }]}>
                   <IconSymbol 
@@ -121,6 +177,18 @@ export default function NotificationsScreen() {
                   <Text style={styles.notificationMessage} numberOfLines={2}>
                     {notification.message}
                   </Text>
+                  {notification.type === 'payment_request' && notification.amount && (
+                    <View style={styles.paymentBadge}>
+                      <IconSymbol 
+                        ios_icon_name="dollarsign.circle.fill" 
+                        android_material_icon_name="attach-money" 
+                        size={14} 
+                        color={colors.warning} 
+                      />
+                      <Text style={styles.paymentAmount}>{notification.amount}</Text>
+                      <Text style={styles.paymentAction}>• Tap to pay</Text>
+                    </View>
+                  )}
                   <Text style={styles.notificationTime}>{notification.time}</Text>
                 </View>
               </TouchableOpacity>
@@ -223,6 +291,29 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 20,
     marginBottom: 6,
+  },
+  paymentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: `${colors.warning}15`,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: `${colors.warning}40`,
+  },
+  paymentAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.warning,
+  },
+  paymentAction: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   notificationTime: {
     fontSize: 12,

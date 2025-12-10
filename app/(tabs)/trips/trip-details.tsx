@@ -1,6 +1,6 @@
 
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
@@ -24,7 +24,7 @@ export default function TripDetailsScreen() {
     },
   };
 
-  const requests = [
+  const [requests, setRequests] = useState([
     {
       id: '1',
       sender: 'Mike Chen',
@@ -32,6 +32,7 @@ export default function TripDetailsScreen() {
       weight: '0.5 kg',
       status: 'pending',
       message: 'Urgent business papers that need to arrive by Feb 16th',
+      agreedPrice: '$25',
     },
     {
       id: '2',
@@ -40,6 +41,7 @@ export default function TripDetailsScreen() {
       weight: '1.2 kg',
       status: 'pending',
       message: 'Gift for my sister, can you help?',
+      agreedPrice: '$30',
     },
     {
       id: '3',
@@ -48,8 +50,109 @@ export default function TripDetailsScreen() {
       weight: '0.8 kg',
       status: 'accepted',
       message: 'Important contracts for my client',
+      agreedPrice: '$20',
     },
-  ];
+  ]);
+
+  const handleAcceptRequest = (requestId: string) => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request) return;
+
+    Alert.alert(
+      'Accept Request',
+      `Accept delivery request from ${request.sender}?\n\nAgreed amount: ${request.agreedPrice}\n\nThe sender will be notified to proceed with payment.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Accept',
+          onPress: () => {
+            // Update request status
+            setRequests(prevRequests =>
+              prevRequests.map(r =>
+                r.id === requestId ? { ...r, status: 'accepted' } : r
+              )
+            );
+
+            // Send payment notification to sender
+            sendPaymentNotification(request);
+
+            // Show success message
+            Alert.alert(
+              'Request Accepted',
+              `You have accepted ${request.sender}'s request.\n\nA payment notification has been sent to ${request.sender} for ${request.agreedPrice}.`,
+              [{ text: 'OK' }]
+            );
+
+            console.log(`Request ${requestId} accepted. Payment notification sent to ${request.sender} for ${request.agreedPrice}`);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeclineRequest = (requestId: string) => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request) return;
+
+    Alert.alert(
+      'Decline Request',
+      `Are you sure you want to decline ${request.sender}'s request?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Decline',
+          style: 'destructive',
+          onPress: () => {
+            // Remove request from list
+            setRequests(prevRequests =>
+              prevRequests.filter(r => r.id !== requestId)
+            );
+
+            Alert.alert(
+              'Request Declined',
+              `You have declined ${request.sender}'s request.`,
+              [{ text: 'OK' }]
+            );
+
+            console.log(`Request ${requestId} declined`);
+          },
+        },
+      ]
+    );
+  };
+
+  const sendPaymentNotification = (request: any) => {
+    // This function would integrate with your notification system
+    // For now, we'll just log it
+    const notification = {
+      type: 'payment_request',
+      recipient: request.sender,
+      title: 'Payment Required',
+      message: `Your delivery request has been accepted! Please proceed with payment of ${request.agreedPrice}.`,
+      amount: request.agreedPrice,
+      item: request.item,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log('Payment notification sent:', notification);
+
+    // In a real app, this would:
+    // 1. Send a push notification to the sender
+    // 2. Create a notification entry in the database
+    // 3. Send an email/SMS reminder
+    // 4. Update the request status to 'awaiting_payment'
+  };
+
+  const handleMessageSender = (senderId: string) => {
+    console.log(`Opening chat with sender: ${senderId}`);
+    router.push(`/chat/${senderId}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -211,7 +314,7 @@ export default function TripDetailsScreen() {
           <Text style={styles.sectionTitle}>Delivery Requests ({requests.length})</Text>
           {requests.map((request, index) => (
             <React.Fragment key={index}>
-              <View key={request.id} style={styles.requestCard}>
+              <View style={styles.requestCard}>
                 {/* Request Header */}
                 <View style={styles.requestHeader}>
                   <IconSymbol 
@@ -245,6 +348,15 @@ export default function TripDetailsScreen() {
                     />
                     <Text style={styles.requestDetailText}>{request.weight}</Text>
                   </View>
+                  <View style={styles.requestDetailItem}>
+                    <IconSymbol 
+                      ios_icon_name="dollarsign.circle" 
+                      android_material_icon_name="attach-money" 
+                      size={14} 
+                      color={colors.textSecondary} 
+                    />
+                    <Text style={styles.requestDetailText}>{request.agreedPrice}</Text>
+                  </View>
                 </View>
 
                 {/* Message */}
@@ -253,7 +365,11 @@ export default function TripDetailsScreen() {
                 {/* Actions */}
                 {request.status === 'pending' && (
                   <View style={styles.requestActions}>
-                    <TouchableOpacity style={styles.acceptButton} activeOpacity={0.8}>
+                    <TouchableOpacity 
+                      style={styles.acceptButton} 
+                      activeOpacity={0.8}
+                      onPress={() => handleAcceptRequest(request.id)}
+                    >
                       <IconSymbol 
                         ios_icon_name="checkmark" 
                         android_material_icon_name="check" 
@@ -262,7 +378,11 @@ export default function TripDetailsScreen() {
                       />
                       <Text style={styles.acceptButtonText}>Accept</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.declineButton} activeOpacity={0.8}>
+                    <TouchableOpacity 
+                      style={styles.declineButton} 
+                      activeOpacity={0.8}
+                      onPress={() => handleDeclineRequest(request.id)}
+                    >
                       <IconSymbol 
                         ios_icon_name="xmark" 
                         android_material_icon_name="close" 
@@ -274,15 +394,32 @@ export default function TripDetailsScreen() {
                   </View>
                 )}
                 {request.status === 'accepted' && (
-                  <TouchableOpacity style={styles.messageButton} activeOpacity={0.8}>
-                    <IconSymbol 
-                      ios_icon_name="message.fill" 
-                      android_material_icon_name="message" 
-                      size={18} 
-                      color="#FFFFFF" 
-                    />
-                    <Text style={styles.messageButtonText}>Message</Text>
-                  </TouchableOpacity>
+                  <View style={styles.acceptedContainer}>
+                    <View style={styles.paymentNotice}>
+                      <IconSymbol 
+                        ios_icon_name="info.circle.fill" 
+                        android_material_icon_name="info" 
+                        size={16} 
+                        color={colors.secondary} 
+                      />
+                      <Text style={styles.paymentNoticeText}>
+                        Payment notification sent to {request.sender}
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.messageButton} 
+                      activeOpacity={0.8}
+                      onPress={() => handleMessageSender(request.id)}
+                    >
+                      <IconSymbol 
+                        ios_icon_name="message.fill" 
+                        android_material_icon_name="message" 
+                        size={18} 
+                        color="#FFFFFF" 
+                      />
+                      <Text style={styles.messageButtonText}>Message</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             </React.Fragment>
@@ -560,6 +697,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.error,
+  },
+  acceptedContainer: {
+    gap: 8,
+  },
+  paymentNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.highlight,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 4,
+  },
+  paymentNoticeText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+    lineHeight: 18,
   },
   messageButton: {
     flexDirection: 'row',
