@@ -1,12 +1,16 @@
 
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert, Modal, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 
 export default function TripDetailsScreen() {
   const router = useRouter();
+  const [showCounterOfferModal, setShowCounterOfferModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [counterOfferAmount, setCounterOfferAmount] = useState('');
+  const [counterOfferMessage, setCounterOfferMessage] = useState('');
 
   // Mock trip data
   const trip = {
@@ -15,7 +19,7 @@ export default function TripDetailsScreen() {
     date: '2024-02-15',
     time: '10:00 AM',
     weight: '5 kg',
-    price: '$50',
+    suggestedPrice: '$50',
     status: 'active',
     description: 'Flying to London for a business conference. Happy to help deliver documents or small items.',
     meetingPoints: {
@@ -32,7 +36,8 @@ export default function TripDetailsScreen() {
       weight: '0.5 kg',
       status: 'pending',
       message: 'Urgent business papers that need to arrive by Feb 16th',
-      agreedPrice: '$25',
+      offeredAmount: '$25',
+      hasCounterOffer: false,
     },
     {
       id: '2',
@@ -41,7 +46,8 @@ export default function TripDetailsScreen() {
       weight: '1.2 kg',
       status: 'pending',
       message: 'Gift for my sister, can you help?',
-      agreedPrice: '$30',
+      offeredAmount: '$30',
+      hasCounterOffer: false,
     },
     {
       id: '3',
@@ -50,7 +56,20 @@ export default function TripDetailsScreen() {
       weight: '0.8 kg',
       status: 'accepted',
       message: 'Important contracts for my client',
-      agreedPrice: '$20',
+      offeredAmount: '$20',
+      agreedAmount: '$20',
+      hasCounterOffer: false,
+    },
+    {
+      id: '4',
+      sender: 'Lisa Brown',
+      item: 'Medical Documents',
+      weight: '0.3 kg',
+      status: 'negotiating',
+      message: 'Medical records needed urgently',
+      offeredAmount: '$15',
+      counterOfferedAmount: '$22',
+      hasCounterOffer: true,
     },
   ]);
 
@@ -60,7 +79,7 @@ export default function TripDetailsScreen() {
 
     Alert.alert(
       'Accept Request',
-      `Accept delivery request from ${request.sender}?\n\nAgreed amount: ${request.agreedPrice}\n\nThe sender will be notified to proceed with payment.`,
+      `Accept delivery request from ${request.sender}?\n\nOffered amount: ${request.offeredAmount}\n\nThe sender will be notified to proceed with payment.`,
       [
         {
           text: 'Cancel',
@@ -72,21 +91,21 @@ export default function TripDetailsScreen() {
             // Update request status
             setRequests(prevRequests =>
               prevRequests.map(r =>
-                r.id === requestId ? { ...r, status: 'accepted' } : r
+                r.id === requestId ? { ...r, status: 'accepted', agreedAmount: r.offeredAmount } : r
               )
             );
 
             // Send payment notification to sender
-            sendPaymentNotification(request);
+            sendPaymentNotification(request, request.offeredAmount);
 
             // Show success message
             Alert.alert(
               'Request Accepted',
-              `You have accepted ${request.sender}'s request.\n\nA payment notification has been sent to ${request.sender} for ${request.agreedPrice}.`,
+              `You have accepted ${request.sender}'s request.\n\nA payment notification has been sent to ${request.sender} for ${request.offeredAmount}.`,
               [{ text: 'OK' }]
             );
 
-            console.log(`Request ${requestId} accepted. Payment notification sent to ${request.sender} for ${request.agreedPrice}`);
+            console.log(`Request ${requestId} accepted. Payment notification sent to ${request.sender} for ${request.offeredAmount}`);
           },
         },
       ]
@@ -127,31 +146,100 @@ export default function TripDetailsScreen() {
     );
   };
 
-  const sendPaymentNotification = (request: any) => {
+  const handleCounterOffer = (request: any) => {
+    setSelectedRequest(request);
+    setCounterOfferAmount('');
+    setCounterOfferMessage('');
+    setShowCounterOfferModal(true);
+  };
+
+  const handleSubmitCounterOffer = () => {
+    if (!counterOfferAmount.trim()) {
+      Alert.alert('Missing Information', 'Please enter your counter offer amount.');
+      return;
+    }
+
+    const amount = parseFloat(counterOfferAmount);
+    const originalAmount = parseFloat(selectedRequest.offeredAmount.replace('$', ''));
+
+    if (amount <= 0) {
+      Alert.alert('Invalid Amount', 'Please enter a valid amount greater than 0.');
+      return;
+    }
+
+    // Close modal
+    setShowCounterOfferModal(false);
+
+    // Update request with counter offer
+    setRequests(prevRequests =>
+      prevRequests.map(r =>
+        r.id === selectedRequest.id
+          ? {
+              ...r,
+              status: 'negotiating',
+              counterOfferedAmount: `$${amount}`,
+              hasCounterOffer: true,
+            }
+          : r
+      )
+    );
+
+    // Show success message
+    Alert.alert(
+      'Counter Offer Sent',
+      `Your counter offer of $${amount} has been sent to ${selectedRequest.sender}.\n\nThey will be notified and can accept or make another offer.`,
+      [{ text: 'OK' }]
+    );
+
+    console.log('Counter offer sent:', {
+      requestId: selectedRequest.id,
+      sender: selectedRequest.sender,
+      originalOffer: selectedRequest.offeredAmount,
+      counterOffer: `$${amount}`,
+      message: counterOfferMessage,
+    });
+  };
+
+  const sendPaymentNotification = (request: any, amount: string) => {
     // This function would integrate with your notification system
-    // For now, we'll just log it
     const notification = {
       type: 'payment_request',
       recipient: request.sender,
       title: 'Payment Required',
-      message: `Your delivery request has been accepted! Please proceed with payment of ${request.agreedPrice}.`,
-      amount: request.agreedPrice,
+      message: `Your delivery request has been accepted! Please proceed with payment of ${amount}.`,
+      amount: amount,
       item: request.item,
       timestamp: new Date().toISOString(),
     };
 
     console.log('Payment notification sent:', notification);
-
-    // In a real app, this would:
-    // 1. Send a push notification to the sender
-    // 2. Create a notification entry in the database
-    // 3. Send an email/SMS reminder
-    // 4. Update the request status to 'awaiting_payment'
   };
 
   const handleMessageSender = (senderId: string) => {
     console.log(`Opening chat with sender: ${senderId}`);
     router.push(`/chat/${senderId}`);
+  };
+
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return styles.statusAccepted;
+      case 'negotiating':
+        return styles.statusNegotiating;
+      default:
+        return styles.statusPending;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return 'Accepted';
+      case 'negotiating':
+        return 'Negotiating';
+      default:
+        return 'Pending';
+    }
   };
 
   return (
@@ -267,8 +355,8 @@ export default function TripDetailsScreen() {
                 size={18} 
                 color={colors.primary} 
               />
-              <Text style={styles.detailLabel}>Price</Text>
-              <Text style={styles.detailValue}>{trip.price}</Text>
+              <Text style={styles.detailLabel}>Suggested Price</Text>
+              <Text style={styles.detailValue}>{trip.suggestedPrice}</Text>
             </View>
           </View>
 
@@ -327,12 +415,9 @@ export default function TripDetailsScreen() {
                     <Text style={styles.requestSender}>{request.sender}</Text>
                     <Text style={styles.requestItem}>{request.item}</Text>
                   </View>
-                  <View style={[
-                    styles.requestStatusBadge,
-                    request.status === 'accepted' ? styles.statusAccepted : styles.statusPending
-                  ]}>
+                  <View style={getStatusBadgeStyle(request.status)}>
                     <Text style={styles.requestStatusText}>
-                      {request.status === 'accepted' ? 'Accepted' : 'Pending'}
+                      {getStatusText(request.status)}
                     </Text>
                   </View>
                 </View>
@@ -355,9 +440,24 @@ export default function TripDetailsScreen() {
                       size={14} 
                       color={colors.textSecondary} 
                     />
-                    <Text style={styles.requestDetailText}>{request.agreedPrice}</Text>
+                    <Text style={styles.requestDetailText}>Offered: {request.offeredAmount}</Text>
                   </View>
                 </View>
+
+                {/* Counter Offer Info */}
+                {request.hasCounterOffer && request.counterOfferedAmount && (
+                  <View style={styles.counterOfferBadge}>
+                    <IconSymbol 
+                      ios_icon_name="arrow.left.arrow.right" 
+                      android_material_icon_name="swap-horiz" 
+                      size={14} 
+                      color={colors.warning} 
+                    />
+                    <Text style={styles.counterOfferText}>
+                      Your counter offer: {request.counterOfferedAmount}
+                    </Text>
+                  </View>
+                )}
 
                 {/* Message */}
                 <Text style={styles.requestMessage}>{request.message}</Text>
@@ -379,6 +479,19 @@ export default function TripDetailsScreen() {
                       <Text style={styles.acceptButtonText}>Accept</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
+                      style={styles.counterOfferButton} 
+                      activeOpacity={0.8}
+                      onPress={() => handleCounterOffer(request)}
+                    >
+                      <IconSymbol 
+                        ios_icon_name="arrow.left.arrow.right" 
+                        android_material_icon_name="swap-horiz" 
+                        size={18} 
+                        color={colors.warning} 
+                      />
+                      <Text style={styles.counterOfferButtonText}>Counter</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
                       style={styles.declineButton} 
                       activeOpacity={0.8}
                       onPress={() => handleDeclineRequest(request.id)}
@@ -389,7 +502,34 @@ export default function TripDetailsScreen() {
                         size={18} 
                         color={colors.error} 
                       />
-                      <Text style={styles.declineButtonText}>Decline</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {request.status === 'negotiating' && (
+                  <View style={styles.negotiatingContainer}>
+                    <View style={styles.negotiatingNotice}>
+                      <IconSymbol 
+                        ios_icon_name="clock.fill" 
+                        android_material_icon_name="schedule" 
+                        size={16} 
+                        color={colors.warning} 
+                      />
+                      <Text style={styles.negotiatingNoticeText}>
+                        Waiting for {request.sender} to respond to your counter offer
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.messageButton} 
+                      activeOpacity={0.8}
+                      onPress={() => handleMessageSender(request.id)}
+                    >
+                      <IconSymbol 
+                        ios_icon_name="message.fill" 
+                        android_material_icon_name="message" 
+                        size={18} 
+                        color="#FFFFFF" 
+                      />
+                      <Text style={styles.messageButtonText}>Message</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -403,7 +543,7 @@ export default function TripDetailsScreen() {
                         color={colors.secondary} 
                       />
                       <Text style={styles.paymentNoticeText}>
-                        Payment notification sent to {request.sender}
+                        Payment notification sent to {request.sender} for {request.agreedAmount}
                       </Text>
                     </View>
                     <TouchableOpacity 
@@ -426,6 +566,112 @@ export default function TripDetailsScreen() {
           ))}
         </View>
       </ScrollView>
+
+      {/* Counter Offer Modal */}
+      <Modal
+        visible={showCounterOfferModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowCounterOfferModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Send Counter Offer</Text>
+              <TouchableOpacity 
+                onPress={() => setShowCounterOfferModal(false)}
+                style={styles.closeButton}
+              >
+                <IconSymbol 
+                  ios_icon_name="xmark.circle.fill" 
+                  android_material_icon_name="cancel" 
+                  size={28} 
+                  color={colors.textSecondary} 
+                />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView 
+              style={styles.modalScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {selectedRequest && (
+                <>
+                  {/* Request Info */}
+                  <View style={styles.modalRequestInfo}>
+                    <IconSymbol 
+                      ios_icon_name="person.circle.fill" 
+                      android_material_icon_name="account-circle" 
+                      size={40} 
+                      color={colors.primary} 
+                    />
+                    <View style={styles.modalRequestDetails}>
+                      <Text style={styles.modalRequestSender}>{selectedRequest.sender}</Text>
+                      <Text style={styles.modalRequestItem}>{selectedRequest.item} • {selectedRequest.weight}</Text>
+                    </View>
+                  </View>
+
+                  {/* Original Offer */}
+                  <View style={styles.originalOfferCard}>
+                    <Text style={styles.originalOfferLabel}>Their Offer</Text>
+                    <Text style={styles.originalOfferAmount}>{selectedRequest.offeredAmount}</Text>
+                  </View>
+
+                  {/* Counter Offer Input */}
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>Your Counter Offer ($) *</Text>
+                    <View style={styles.offerInputContainer}>
+                      <Text style={styles.currencySymbol}>$</Text>
+                      <TextInput
+                        style={styles.offerInput}
+                        placeholder="Enter your counter offer"
+                        placeholderTextColor={colors.textSecondary}
+                        value={counterOfferAmount}
+                        onChangeText={setCounterOfferAmount}
+                        keyboardType="decimal-pad"
+                      />
+                    </View>
+                    <Text style={styles.helperText}>
+                      Suggest a fair price that works for both parties
+                    </Text>
+                  </View>
+
+                  {/* Optional Message */}
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>Message (Optional)</Text>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      placeholder="Explain your counter offer..."
+                      placeholderTextColor={colors.textSecondary}
+                      value={counterOfferMessage}
+                      onChangeText={setCounterOfferMessage}
+                      multiline
+                      numberOfLines={3}
+                    />
+                  </View>
+                </>
+              )}
+            </ScrollView>
+
+            {/* Modal Actions */}
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setShowCounterOfferModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.submitButton}
+                onPress={handleSubmitCounterOffer}
+              >
+                <Text style={styles.submitButtonText}>Send Counter Offer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -633,9 +879,21 @@ const styles = StyleSheet.create({
   },
   statusAccepted: {
     backgroundColor: colors.success,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   statusPending: {
     backgroundColor: colors.accent,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusNegotiating: {
+    backgroundColor: colors.warning,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   requestStatusText: {
     fontSize: 11,
@@ -656,6 +914,24 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
   },
+  counterOfferBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: `${colors.warning}15`,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: `${colors.warning}40`,
+  },
+  counterOfferText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.warning,
+  },
   requestMessage: {
     fontSize: 14,
     color: colors.text,
@@ -667,7 +943,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   acceptButton: {
-    flex: 1,
+    flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -680,6 +956,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  counterOfferButton: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.warning,
+  },
+  counterOfferButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.warning,
   },
   declineButton: {
     flex: 1,
@@ -697,6 +990,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.error,
+  },
+  negotiatingContainer: {
+    gap: 8,
+  },
+  negotiatingNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: `${colors.warning}15`,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: `${colors.warning}40`,
+  },
+  negotiatingNoticeText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+    lineHeight: 18,
   },
   acceptedContainer: {
     gap: 8,
@@ -727,6 +1040,164 @@ const styles = StyleSheet.create({
   },
   messageButtonText: {
     fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '75%',
+    paddingBottom: Platform.OS === 'android' ? 20 : 0,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalScroll: {
+    maxHeight: 400,
+    paddingHorizontal: 20,
+  },
+  modalRequestInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.highlight,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  modalRequestDetails: {
+    flex: 1,
+  },
+  modalRequestSender: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  modalRequestItem: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  originalOfferCard: {
+    backgroundColor: colors.background,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  originalOfferLabel: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  originalOfferAmount: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  formGroup: {
+    marginTop: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 15,
+    color: colors.text,
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  offerInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingLeft: 12,
+  },
+  currencySymbol: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginRight: 4,
+  },
+  offerInput: {
+    flex: 1,
+    padding: 12,
+    paddingLeft: 4,
+    fontSize: 15,
+    color: colors.text,
+  },
+  helperText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 6,
+    lineHeight: 16,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  submitButton: {
+    flex: 2,
+    backgroundColor: colors.warning,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
   },

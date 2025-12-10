@@ -1,12 +1,17 @@
 
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput, Alert, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 
 export default function TravelerDetailsScreen() {
   const router = useRouter();
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [itemDescription, setItemDescription] = useState('');
+  const [itemWeight, setItemWeight] = useState('');
+  const [offerAmount, setOfferAmount] = useState('');
+  const [requestMessage, setRequestMessage] = useState('');
 
   // Mock traveler data
   const traveler = {
@@ -21,7 +26,7 @@ export default function TravelerDetailsScreen() {
     date: '2024-02-18',
     time: '10:00 AM',
     weight: '3 kg',
-    price: '$40',
+    suggestedPrice: '$40',
     description: 'I travel frequently for business. Happy to help deliver small items. I prefer documents and small packages only.',
     meetingPoints: {
       pickup: 'LAX Airport, Terminal B',
@@ -34,6 +39,61 @@ export default function TravelerDetailsScreen() {
     { id: '2', user: 'Emma Wilson', rating: 5, comment: 'Great communication throughout the process.', date: 'Dec 2023' },
     { id: '3', user: 'David Lee', rating: 4, comment: 'Good service, slight delay but kept me informed.', date: 'Nov 2023' },
   ];
+
+  const handleSendRequest = () => {
+    setShowRequestModal(true);
+  };
+
+  const handleSubmitRequest = () => {
+    // Validate inputs
+    if (!itemDescription.trim()) {
+      Alert.alert('Missing Information', 'Please describe the item you want to send.');
+      return;
+    }
+    if (!itemWeight.trim()) {
+      Alert.alert('Missing Information', 'Please enter the item weight.');
+      return;
+    }
+    if (!offerAmount.trim()) {
+      Alert.alert('Missing Information', 'Please enter your offer amount.');
+      return;
+    }
+
+    // Close modal
+    setShowRequestModal(false);
+
+    // Show success message
+    Alert.alert(
+      'Request Sent',
+      `Your delivery request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nYou will be notified when they respond.`,
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            console.log('Request sent:', {
+              traveler: traveler.name,
+              item: itemDescription,
+              weight: itemWeight,
+              offer: offerAmount,
+              message: requestMessage,
+            });
+            // Reset form
+            setItemDescription('');
+            setItemWeight('');
+            setOfferAmount('');
+            setRequestMessage('');
+            // Navigate back
+            router.back();
+          },
+        },
+      ]
+    );
+  };
+
+  const handleMessageTraveler = () => {
+    console.log('Opening chat with traveler');
+    router.push('/chat/traveler-1');
+  };
 
   return (
     <View style={styles.container}>
@@ -196,8 +256,8 @@ export default function TravelerDetailsScreen() {
                   size={18} 
                   color={colors.primary} 
                 />
-                <Text style={styles.detailLabel}>Price</Text>
-                <Text style={styles.detailValue}>{traveler.price}</Text>
+                <Text style={styles.detailLabel}>Suggested Price</Text>
+                <Text style={styles.detailValue}>{traveler.suggestedPrice}</Text>
               </View>
             </View>
           </View>
@@ -253,7 +313,7 @@ export default function TravelerDetailsScreen() {
           </View>
           {reviews.map((review, index) => (
             <React.Fragment key={index}>
-              <View key={review.id} style={styles.reviewCard}>
+              <View style={styles.reviewCard}>
                 <View style={styles.reviewHeader}>
                   <IconSymbol 
                     ios_icon_name="person.circle.fill" 
@@ -286,7 +346,11 @@ export default function TravelerDetailsScreen() {
 
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.messageButton} activeOpacity={0.8}>
+        <TouchableOpacity 
+          style={styles.messageButton} 
+          activeOpacity={0.8}
+          onPress={handleMessageTraveler}
+        >
           <IconSymbol 
             ios_icon_name="message.fill" 
             android_material_icon_name="message" 
@@ -295,10 +359,147 @@ export default function TravelerDetailsScreen() {
           />
           <Text style={styles.messageButtonText}>Message</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.requestButton} activeOpacity={0.8}>
+        <TouchableOpacity 
+          style={styles.requestButton} 
+          activeOpacity={0.8}
+          onPress={handleSendRequest}
+        >
           <Text style={styles.requestButtonText}>Send Request</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Request Modal */}
+      <Modal
+        visible={showRequestModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowRequestModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Send Delivery Request</Text>
+              <TouchableOpacity 
+                onPress={() => setShowRequestModal(false)}
+                style={styles.closeButton}
+              >
+                <IconSymbol 
+                  ios_icon_name="xmark.circle.fill" 
+                  android_material_icon_name="cancel" 
+                  size={28} 
+                  color={colors.textSecondary} 
+                />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView 
+              style={styles.modalScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Traveler Info */}
+              <View style={styles.modalTravelerInfo}>
+                <IconSymbol 
+                  ios_icon_name="person.circle.fill" 
+                  android_material_icon_name="account-circle" 
+                  size={40} 
+                  color={colors.primary} 
+                />
+                <View style={styles.modalTravelerDetails}>
+                  <Text style={styles.modalTravelerName}>{traveler.name}</Text>
+                  <Text style={styles.modalTravelerRoute}>{traveler.from} → {traveler.to}</Text>
+                </View>
+              </View>
+
+              {/* Suggested Price Notice */}
+              <View style={styles.priceNotice}>
+                <IconSymbol 
+                  ios_icon_name="info.circle.fill" 
+                  android_material_icon_name="info" 
+                  size={18} 
+                  color={colors.secondary} 
+                />
+                <Text style={styles.priceNoticeText}>
+                  Suggested price: {traveler.suggestedPrice} (You can offer a different amount)
+                </Text>
+              </View>
+
+              {/* Form Fields */}
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Item Description *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., Business documents, Small gift"
+                  placeholderTextColor={colors.textSecondary}
+                  value={itemDescription}
+                  onChangeText={setItemDescription}
+                  multiline
+                  numberOfLines={2}
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Item Weight (kg) *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., 0.5"
+                  placeholderTextColor={colors.textSecondary}
+                  value={itemWeight}
+                  onChangeText={setItemWeight}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Your Offer Amount ($) *</Text>
+                <View style={styles.offerInputContainer}>
+                  <Text style={styles.currencySymbol}>$</Text>
+                  <TextInput
+                    style={styles.offerInput}
+                    placeholder="Enter your offer"
+                    placeholderTextColor={colors.textSecondary}
+                    value={offerAmount}
+                    onChangeText={setOfferAmount}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <Text style={styles.helperText}>
+                  The traveler can accept, decline, or send a counteroffer
+                </Text>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Additional Message (Optional)</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Add any special instructions or details..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={requestMessage}
+                  onChangeText={setRequestMessage}
+                  multiline
+                  numberOfLines={4}
+                />
+              </View>
+            </ScrollView>
+
+            {/* Modal Actions */}
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setShowRequestModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.submitButton}
+                onPress={handleSubmitRequest}
+              >
+                <Text style={styles.submitButtonText}>Send Request</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -594,6 +795,162 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   requestButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    paddingBottom: Platform.OS === 'android' ? 20 : 0,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalScroll: {
+    maxHeight: 500,
+    paddingHorizontal: 20,
+  },
+  modalTravelerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.highlight,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+  },
+  modalTravelerDetails: {
+    flex: 1,
+  },
+  modalTravelerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  modalTravelerRoute: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  priceNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: `${colors.secondary}15`,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: `${colors.secondary}30`,
+  },
+  priceNoticeText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+    lineHeight: 18,
+  },
+  formGroup: {
+    marginTop: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 15,
+    color: colors.text,
+  },
+  textArea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+  },
+  offerInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingLeft: 12,
+  },
+  currencySymbol: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginRight: 4,
+  },
+  offerInput: {
+    flex: 1,
+    padding: 12,
+    paddingLeft: 4,
+    fontSize: 15,
+    color: colors.text,
+  },
+  helperText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 6,
+    lineHeight: 16,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  submitButton: {
+    flex: 2,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',

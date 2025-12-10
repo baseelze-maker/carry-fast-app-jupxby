@@ -9,6 +9,20 @@ import { colors } from "@/styles/commonStyles";
 const initialNotifications = [
   {
     id: '1',
+    type: 'counter_offer',
+    title: 'Counter Offer Received',
+    message: 'Sarah Johnson sent a counter offer of $35 for your delivery request',
+    sender: 'Sarah Johnson',
+    originalAmount: '$25',
+    counterAmount: '$35',
+    time: '1m ago',
+    read: false,
+    icon: 'arrow.left.arrow.right',
+    iconAndroid: 'swap-horiz',
+    iconColor: colors.warning,
+  },
+  {
+    id: '2',
     type: 'payment_request',
     title: 'Payment Required',
     message: 'Your delivery request has been accepted! Please proceed with payment of $25.',
@@ -21,10 +35,24 @@ const initialNotifications = [
     iconColor: colors.warning,
   },
   {
-    id: '2',
+    id: '3',
+    type: 'offer_accepted',
+    title: 'Offer Accepted',
+    message: 'Mike Chen accepted your offer of $30. Please proceed with payment.',
+    sender: 'Mike Chen',
+    amount: '$30',
+    time: '15m ago',
+    read: false,
+    icon: 'checkmark.circle.fill',
+    iconAndroid: 'check-circle',
+    iconColor: colors.success,
+  },
+  {
+    id: '4',
     type: 'request',
     title: 'New Delivery Request',
-    message: 'Mike Chen wants to send an item on your trip to London',
+    message: 'Mike Chen wants to send an item on your trip to London. Offered amount: $25',
+    offeredAmount: '$25',
     time: '5m ago',
     read: false,
     icon: 'shippingbox',
@@ -32,7 +60,7 @@ const initialNotifications = [
     iconColor: colors.secondary,
   },
   {
-    id: '3',
+    id: '5',
     type: 'message',
     title: 'New Message',
     message: 'Sarah Johnson: "Sure, I can deliver that for you!"',
@@ -43,10 +71,11 @@ const initialNotifications = [
     iconColor: colors.primary,
   },
   {
-    id: '4',
+    id: '6',
     type: 'accepted',
     title: 'Request Accepted',
-    message: 'Emma Wilson accepted your delivery request',
+    message: 'Emma Wilson accepted your delivery request for $30',
+    amount: '$30',
     time: '3h ago',
     read: true,
     icon: 'checkmark.circle.fill',
@@ -54,7 +83,7 @@ const initialNotifications = [
     iconColor: colors.success,
   },
   {
-    id: '5',
+    id: '7',
     type: 'payment_request',
     title: 'Payment Required',
     message: 'David Lee accepted your request. Please pay $20 to confirm the delivery.',
@@ -67,7 +96,7 @@ const initialNotifications = [
     iconColor: colors.warning,
   },
   {
-    id: '6',
+    id: '8',
     type: 'review',
     title: 'New Review',
     message: 'David Lee left you a 5-star review',
@@ -78,7 +107,7 @@ const initialNotifications = [
     iconColor: colors.accent,
   },
   {
-    id: '7',
+    id: '9',
     type: 'reminder',
     title: 'Trip Reminder',
     message: 'Your trip to Paris is tomorrow at 10:00 AM',
@@ -89,7 +118,7 @@ const initialNotifications = [
     iconColor: colors.warning,
   },
   {
-    id: '8',
+    id: '10',
     type: 'completed',
     title: 'Delivery Completed',
     message: 'Your item was successfully delivered by John Smith',
@@ -122,10 +151,14 @@ export default function NotificationsScreen() {
     );
 
     // Navigate based on notification type
-    if (notification.type === 'payment_request') {
+    if (notification.type === 'payment_request' || notification.type === 'offer_accepted') {
       // In a real app, this would navigate to a payment screen
       console.log('Opening payment screen for:', notification.amount);
       // router.push('/payment');
+    } else if (notification.type === 'counter_offer') {
+      // Navigate to the request details or chat to respond
+      console.log('Opening counter offer details');
+      router.push('/trips/trip-details');
     } else if (notification.type === 'message') {
       router.push(`/chat/${notification.id}`);
     } else if (notification.type === 'request') {
@@ -187,6 +220,43 @@ export default function NotificationsScreen() {
                       />
                       <Text style={styles.paymentAmount}>{notification.amount}</Text>
                       <Text style={styles.paymentAction}>• Tap to pay</Text>
+                    </View>
+                  )}
+                  {notification.type === 'counter_offer' && notification.counterAmount && (
+                    <View style={styles.counterOfferBadge}>
+                      <IconSymbol 
+                        ios_icon_name="arrow.left.arrow.right" 
+                        android_material_icon_name="swap-horiz" 
+                        size={14} 
+                        color={colors.warning} 
+                      />
+                      <Text style={styles.counterOfferAmount}>
+                        {notification.originalAmount} → {notification.counterAmount}
+                      </Text>
+                      <Text style={styles.counterOfferAction}>• Tap to respond</Text>
+                    </View>
+                  )}
+                  {notification.type === 'request' && notification.offeredAmount && (
+                    <View style={styles.offerBadge}>
+                      <IconSymbol 
+                        ios_icon_name="dollarsign.circle.fill" 
+                        android_material_icon_name="attach-money" 
+                        size={14} 
+                        color={colors.secondary} 
+                      />
+                      <Text style={styles.offerAmount}>Offer: {notification.offeredAmount}</Text>
+                    </View>
+                  )}
+                  {notification.type === 'offer_accepted' && notification.amount && (
+                    <View style={styles.acceptedBadge}>
+                      <IconSymbol 
+                        ios_icon_name="checkmark.circle.fill" 
+                        android_material_icon_name="check-circle" 
+                        size={14} 
+                        color={colors.success} 
+                      />
+                      <Text style={styles.acceptedAmount}>{notification.amount}</Text>
+                      <Text style={styles.acceptedAction}>• Tap to pay</Text>
                     </View>
                   )}
                   <Text style={styles.notificationTime}>{notification.time}</Text>
@@ -311,6 +381,70 @@ const styles = StyleSheet.create({
     color: colors.warning,
   },
   paymentAction: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  counterOfferBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: `${colors.warning}15`,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: `${colors.warning}40`,
+  },
+  counterOfferAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.warning,
+  },
+  counterOfferAction: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  offerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: `${colors.secondary}15`,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: `${colors.secondary}40`,
+  },
+  offerAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.secondary,
+  },
+  acceptedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: `${colors.success}15`,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: `${colors.success}40`,
+  },
+  acceptedAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.success,
+  },
+  acceptedAction: {
     fontSize: 11,
     fontWeight: '600',
     color: colors.textSecondary,
