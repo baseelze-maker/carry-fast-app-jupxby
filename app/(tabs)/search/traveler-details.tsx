@@ -4,10 +4,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, TextInp
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function TravelerDetailsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { hasPaidCommunicationFee } = useAuth();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [itemDescription, setItemDescription] = useState('');
   const [itemWeight, setItemWeight] = useState('');
@@ -75,6 +77,9 @@ export default function TravelerDetailsScreen() {
       verified: false,
     },
   ];
+
+  // Check if user has paid the communication fee for this traveler
+  const hasPaid = hasPaidCommunicationFee(traveler.id);
 
   const handleSendRequest = () => {
     setShowRequestModal(true);
@@ -157,6 +162,37 @@ export default function TravelerDetailsScreen() {
   };
 
   const handleMessageTraveler = () => {
+    console.log('Message button clicked. Has paid:', hasPaid, 'Traveler ID:', traveler.id);
+    
+    // Check if user has paid the communication fee
+    if (!hasPaid) {
+      Alert.alert(
+        'Communication Fee Required',
+        `To message ${traveler.name}, you need to pay a one-time $5 communication fee to the app.\n\nThis unlocks:\n• Direct messaging\n• Pickup coordination\n• Payment arrangement for carrying service\n\nNote: The carrying service payment to the traveler is separate.`,
+        [
+          {
+            text: 'Pay $5 Fee',
+            onPress: () => {
+              console.log('Navigating to payment for traveler:', traveler.id);
+              router.push({
+                pathname: '/app-payment',
+                params: {
+                  travelerName: traveler.name,
+                  requestId: traveler.id,
+                },
+              });
+            },
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
+      return;
+    }
+
+    // If paid, allow messaging
     console.log('Opening chat with traveler:', traveler.id);
     router.push(`/chat/${traveler.id}`);
   };
@@ -233,6 +269,24 @@ export default function TravelerDetailsScreen() {
             </View>
           </View>
         </View>
+
+        {/* Payment Status Banner - Show if not paid */}
+        {!hasPaid && (
+          <View style={styles.paymentBanner}>
+            <IconSymbol 
+              ios_icon_name="lock.fill" 
+              android_material_icon_name="lock" 
+              size={20} 
+              color={colors.accent} 
+            />
+            <View style={styles.paymentBannerContent}>
+              <Text style={styles.paymentBannerTitle}>Messaging Locked</Text>
+              <Text style={styles.paymentBannerText}>
+                Pay $5 communication fee to unlock messaging with this traveler
+              </Text>
+            </View>
+          </View>
+        )}
 
         {/* Stats */}
         <View style={styles.statsCard}>
@@ -496,17 +550,25 @@ export default function TravelerDetailsScreen() {
       {/* Bottom Actions */}
       <View style={styles.bottomActions}>
         <TouchableOpacity 
-          style={styles.messageButton} 
+          style={[
+            styles.messageButton,
+            !hasPaid && styles.messageButtonLocked
+          ]} 
           activeOpacity={0.8}
           onPress={handleMessageTraveler}
         >
           <IconSymbol 
-            ios_icon_name="message.fill" 
-            android_material_icon_name="message" 
+            ios_icon_name={hasPaid ? "message.fill" : "lock.fill"} 
+            android_material_icon_name={hasPaid ? "message" : "lock"} 
             size={20} 
-            color={colors.text} 
+            color={hasPaid ? colors.text : colors.accent} 
           />
-          <Text style={styles.messageButtonText}>Message</Text>
+          <Text style={[
+            styles.messageButtonText,
+            !hasPaid && styles.messageButtonTextLocked
+          ]}>
+            {hasPaid ? 'Message' : 'Message (Pay $5)'}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.requestButton} 
@@ -746,6 +808,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: colors.text,
+  },
+  paymentBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: `${colors.accent}20`,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.accent,
+    padding: 16,
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 8,
+  },
+  paymentBannerContent: {
+    flex: 1,
+  },
+  paymentBannerTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  paymentBannerText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
   },
   statsCard: {
     flexDirection: 'row',
@@ -993,10 +1081,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  messageButtonLocked: {
+    backgroundColor: `${colors.accent}15`,
+    borderColor: colors.accent,
+  },
   messageButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
+  },
+  messageButtonTextLocked: {
+    color: colors.accent,
   },
   requestButton: {
     flex: 2,

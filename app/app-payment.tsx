@@ -5,10 +5,12 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 import * as Haptics from "expo-haptics";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function AppPaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { markCommunicationFeePaid } = useAuth();
   const [selectedMethod, setSelectedMethod] = useState<'card' | 'paypal' | null>(null);
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -37,24 +39,34 @@ export default function AppPaymentScreen() {
     setIsProcessing(true);
 
     // Simulate payment processing
-    setTimeout(() => {
+    setTimeout(async () => {
       setIsProcessing(false);
-      Alert.alert(
-        'Communication Fee Paid!',
-        `Your $${communicationFee} communication fee has been processed.\n\n✓ Messaging with ${travelerName} is now unlocked\n✓ You can discuss pickup details\n✓ Arrange payment for carrying service separately\n\nNote: The carrying service payment to the traveler is separate and will be arranged directly with them (cash or card).`,
-        [
-          {
-            text: 'Message Traveler',
-            onPress: () => {
-              router.replace(`/chat/${requestId}`);
+      
+      // Mark the communication fee as paid for this traveler
+      try {
+        await markCommunicationFeePaid(requestId as string);
+        console.log('Communication fee marked as paid for traveler:', requestId);
+        
+        Alert.alert(
+          'Communication Fee Paid!',
+          `Your $${communicationFee} communication fee has been processed.\n\n✓ Messaging with ${travelerName} is now unlocked\n✓ You can discuss pickup details\n✓ Arrange payment for carrying service separately\n\nNote: The carrying service payment to the traveler is separate and will be arranged directly with them (cash or card).`,
+          [
+            {
+              text: 'Message Traveler',
+              onPress: () => {
+                router.replace(`/chat/${requestId}`);
+              },
             },
-          },
-          {
-            text: 'Later',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+            {
+              text: 'Later',
+              onPress: () => router.back(),
+            },
+          ]
+        );
+      } catch (error) {
+        console.error('Error marking payment:', error);
+        Alert.alert('Error', 'Failed to process payment. Please try again.');
+      }
     }, 2000);
   };
 
