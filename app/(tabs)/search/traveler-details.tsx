@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingBottom: 100,
+    paddingBottom: 180,
   },
   profileSection: {
     backgroundColor: colors.card,
@@ -928,6 +928,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.card,
     padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: colors.border,
