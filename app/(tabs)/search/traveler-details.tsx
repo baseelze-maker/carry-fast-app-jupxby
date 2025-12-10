@@ -31,10 +31,10 @@ export default function TravelerDetailsScreen() {
     time: '10:00 AM',
     weight: '3 kg',
     suggestedPrice: '$40',
-    description: 'I travel frequently for business between LA and France. Happy to help deliver small items like documents, gifts, or small packages. I prefer items that are well-packaged and clearly labeled. I have experience with international deliveries and understand customs requirements.',
+    description: 'I travel frequently for business between LA and France. Happy to help carry small items like documents, gifts, or small packages. I prefer items that are well-packaged and clearly labeled. I have experience with international travel and understand customs requirements. Our Centre representative will meet me at the destination to collect the items.',
     meetingPoints: {
       pickup: 'LAX Airport, Terminal B - International Departures',
-      delivery: 'Charles de Gaulle Airport, Terminal 2E - Arrivals Hall',
+      handover: 'Charles de Gaulle Airport, Terminal 2E - Arrivals Hall (Centre representative will meet here)',
     },
     preferences: [
       'Documents and papers',
@@ -45,7 +45,7 @@ export default function TravelerDetailsScreen() {
     restrictions: [
       'No liquids or perishables',
       'No fragile items without proper packaging',
-      'Maximum 3kg per delivery',
+      'Maximum 3kg per item',
     ],
   };
 
@@ -54,7 +54,7 @@ export default function TravelerDetailsScreen() {
       id: '1', 
       user: 'Mike Chen', 
       rating: 5, 
-      comment: 'Very reliable! Delivered my documents on time and kept me updated throughout the journey. Highly recommend!', 
+      comment: 'Very reliable! Handed over my documents to the Centre representative on time and kept me updated throughout the journey. Highly recommend!', 
       date: 'Jan 2024',
       verified: true,
     },
@@ -62,7 +62,7 @@ export default function TravelerDetailsScreen() {
       id: '2', 
       user: 'Emma Wilson', 
       rating: 5, 
-      comment: 'Great communication throughout the process. Sarah was very professional and careful with my package.', 
+      comment: 'Great communication throughout the process. Sarah was very professional and careful with my package. The handover went smoothly.', 
       date: 'Dec 2023',
       verified: true,
     },
@@ -70,7 +70,7 @@ export default function TravelerDetailsScreen() {
       id: '3', 
       user: 'David Lee', 
       rating: 4, 
-      comment: 'Good service, slight delay but kept me informed. Would use again.', 
+      comment: 'Good service, slight delay but kept me informed. The Centre representative confirmed receipt. Would use again.', 
       date: 'Nov 2023',
       verified: false,
     },
@@ -112,7 +112,7 @@ export default function TravelerDetailsScreen() {
     // Show success message
     Alert.alert(
       'Request Sent Successfully',
-      `Your delivery request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nItem: ${itemDescription}\nWeight: ${itemWeight} kg\n\nYou will receive a notification when they respond. Average response time: ${traveler.responseTime}.`,
+      `Your request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nItem: ${itemDescription}\nWeight: ${itemWeight} kg\n\nYou will receive a notification when they respond. Average response time: ${traveler.responseTime}.\n\nOnce accepted, you&apos;ll hand over the item to ${traveler.name} at the pickup point. They will then carry it to the destination where our Centre representative will collect it.`,
       [
         {
           text: 'OK',
@@ -330,7 +330,7 @@ export default function TravelerDetailsScreen() {
                   size={18} 
                   color={colors.primary} 
                 />
-                <Text style={styles.detailLabel}>Suggested Price</Text>
+                <Text style={styles.detailLabel}>Suggested Fee</Text>
                 <Text style={styles.detailValue}>{traveler.suggestedPrice}</Text>
               </View>
             </View>
@@ -383,8 +383,19 @@ export default function TravelerDetailsScreen() {
 
         {/* Meeting Points */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Meeting Points</Text>
+          <Text style={styles.sectionTitle}>Handover Process</Text>
           <View style={styles.card}>
+            <View style={styles.processNotice}>
+              <IconSymbol 
+                ios_icon_name="info.circle.fill" 
+                android_material_icon_name="info" 
+                size={18} 
+                color={colors.secondary} 
+              />
+              <Text style={styles.processNoticeText}>
+                You will hand over your item to the traveler at pickup. The traveler will carry it to the destination where our Centre representative will collect it.
+              </Text>
+            </View>
             <View style={styles.meetingPoint}>
               <IconSymbol 
                 ios_icon_name="mappin.circle.fill" 
@@ -393,7 +404,7 @@ export default function TravelerDetailsScreen() {
                 color={colors.secondary} 
               />
               <View style={styles.meetingInfo}>
-                <Text style={styles.meetingLabel}>Pickup</Text>
+                <Text style={styles.meetingLabel}>Pickup Point (You → Traveler)</Text>
                 <Text style={styles.meetingText}>{traveler.meetingPoints.pickup}</Text>
               </View>
             </View>
@@ -406,8 +417,8 @@ export default function TravelerDetailsScreen() {
                 color={colors.primary} 
               />
               <View style={styles.meetingInfo}>
-                <Text style={styles.meetingLabel}>Delivery</Text>
-                <Text style={styles.meetingText}>{traveler.meetingPoints.delivery}</Text>
+                <Text style={styles.meetingLabel}>Handover Point (Traveler → Centre Rep)</Text>
+                <Text style={styles.meetingText}>{traveler.meetingPoints.handover}</Text>
               </View>
             </View>
           </View>
@@ -499,7 +510,7 @@ export default function TravelerDetailsScreen() {
           <View style={styles.modalContent}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Send Delivery Request</Text>
+              <Text style={styles.modalTitle}>Send Carry Request</Text>
               <TouchableOpacity 
                 onPress={() => setShowRequestModal(false)}
                 style={styles.closeButton}
@@ -540,7 +551,7 @@ export default function TravelerDetailsScreen() {
                   color={colors.secondary} 
                 />
                 <Text style={styles.priceNoticeText}>
-                  Suggested price: {traveler.suggestedPrice} (You can offer a different amount)
+                  Suggested fee: {traveler.suggestedPrice} (You can offer a different amount)
                 </Text>
               </View>
 
@@ -856,6 +867,23 @@ const styles = StyleSheet.create({
     color: colors.text,
     flex: 1,
   },
+  processNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: colors.highlight,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  processNoticeText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+    lineHeight: 18,
+  },
   meetingPoint: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -868,6 +896,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     marginBottom: 4,
+    fontWeight: '600',
   },
   meetingText: {
     fontSize: 15,

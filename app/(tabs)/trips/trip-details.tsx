@@ -21,52 +21,52 @@ export default function TripDetailsScreen() {
     weight: '5 kg',
     suggestedPrice: '$50',
     status: 'active',
-    description: 'Flying to London for a business conference. Happy to help deliver documents or small items.',
+    description: 'Flying to London for a business conference. Happy to help carry documents or small items. Our Centre representative will meet me at the destination to collect the items.',
     meetingPoints: {
-      pickup: 'JFK Airport, Terminal 4',
-      delivery: 'Heathrow Airport, Terminal 5',
+      pickup: 'JFK Airport, Terminal 4 - International Departures',
+      handover: 'Heathrow Airport, Terminal 5 - Arrivals Hall (Centre representative will meet here)',
     },
   };
 
   const [requests, setRequests] = useState([
     {
       id: '1',
-      sender: 'Mike Chen',
+      requester: 'Mike Chen',
       item: 'Business Documents',
       weight: '0.5 kg',
       status: 'pending',
-      message: 'Urgent business papers that need to arrive by Feb 16th',
+      message: 'Urgent business papers that need to arrive by Feb 16th. I will hand them to you at JFK.',
       offeredAmount: '$25',
       hasCounterOffer: false,
     },
     {
       id: '2',
-      sender: 'Emma Wilson',
+      requester: 'Emma Wilson',
       item: 'Small Package',
       weight: '1.2 kg',
       status: 'pending',
-      message: 'Gift for my sister, can you help?',
+      message: 'Gift for my colleague at the Centre. Can you help carry it?',
       offeredAmount: '$30',
       hasCounterOffer: false,
     },
     {
       id: '3',
-      sender: 'David Lee',
+      requester: 'David Lee',
       item: 'Legal Documents',
       weight: '0.8 kg',
       status: 'accepted',
-      message: 'Important contracts for my client',
+      message: 'Important contracts that need to reach our Centre office',
       offeredAmount: '$20',
       agreedAmount: '$20',
       hasCounterOffer: false,
     },
     {
       id: '4',
-      sender: 'Lisa Brown',
+      requester: 'Lisa Brown',
       item: 'Medical Documents',
       weight: '0.3 kg',
       status: 'negotiating',
-      message: 'Medical records needed urgently',
+      message: 'Medical records needed urgently at the Centre',
       offeredAmount: '$15',
       counterOfferedAmount: '$22',
       hasCounterOffer: true,
@@ -79,7 +79,7 @@ export default function TripDetailsScreen() {
 
     Alert.alert(
       'Accept Request',
-      `Accept delivery request from ${request.sender}?\n\nOffered amount: ${request.offeredAmount}\n\nThe sender will be notified to proceed with payment.`,
+      `Accept carry request from ${request.requester}?\n\nOffered amount: ${request.offeredAmount}\n\nYou will receive the item from ${request.requester} at pickup, carry it to the destination, and hand it over to our Centre representative.\n\nThe requester will be notified to proceed with payment.`,
       [
         {
           text: 'Cancel',
@@ -95,17 +95,17 @@ export default function TripDetailsScreen() {
               )
             );
 
-            // Send payment notification to sender
+            // Send payment notification to requester
             sendPaymentNotification(request, request.offeredAmount);
 
             // Show success message
             Alert.alert(
               'Request Accepted',
-              `You have accepted ${request.sender}'s request.\n\nA payment notification has been sent to ${request.sender} for ${request.offeredAmount}.`,
+              `You have accepted ${request.requester}&apos;s request.\n\nA payment notification has been sent to ${request.requester} for ${request.offeredAmount}.\n\nRemember: You will collect the item at pickup and hand it over to our Centre representative at the destination.`,
               [{ text: 'OK' }]
             );
 
-            console.log(`Request ${requestId} accepted. Payment notification sent to ${request.sender} for ${request.offeredAmount}`);
+            console.log(`Request ${requestId} accepted. Payment notification sent to ${request.requester} for ${request.offeredAmount}`);
           },
         },
       ]
@@ -118,7 +118,7 @@ export default function TripDetailsScreen() {
 
     Alert.alert(
       'Decline Request',
-      `Are you sure you want to decline ${request.sender}'s request?`,
+      `Are you sure you want to decline ${request.requester}&apos;s request?`,
       [
         {
           text: 'Cancel',
@@ -135,7 +135,7 @@ export default function TripDetailsScreen() {
 
             Alert.alert(
               'Request Declined',
-              `You have declined ${request.sender}'s request.`,
+              `You have declined ${request.requester}&apos;s request.`,
               [{ text: 'OK' }]
             );
 
@@ -187,13 +187,13 @@ export default function TripDetailsScreen() {
     // Show success message
     Alert.alert(
       'Counter Offer Sent',
-      `Your counter offer of $${amount} has been sent to ${selectedRequest.sender}.\n\nThey will be notified and can accept or make another offer.`,
+      `Your counter offer of $${amount} has been sent to ${selectedRequest.requester}.\n\nThey will be notified and can accept or make another offer.`,
       [{ text: 'OK' }]
     );
 
     console.log('Counter offer sent:', {
       requestId: selectedRequest.id,
-      sender: selectedRequest.sender,
+      requester: selectedRequest.requester,
       originalOffer: selectedRequest.offeredAmount,
       counterOffer: `$${amount}`,
       message: counterOfferMessage,
@@ -204,9 +204,9 @@ export default function TripDetailsScreen() {
     // This function would integrate with your notification system
     const notification = {
       type: 'payment_request',
-      recipient: request.sender,
+      recipient: request.requester,
       title: 'Payment Required',
-      message: `Your delivery request has been accepted! Please proceed with payment of ${amount}.`,
+      message: `Your carry request has been accepted! Please proceed with payment of ${amount}.`,
       amount: amount,
       item: request.item,
       timestamp: new Date().toISOString(),
@@ -215,9 +215,9 @@ export default function TripDetailsScreen() {
     console.log('Payment notification sent:', notification);
   };
 
-  const handleMessageSender = (senderId: string) => {
-    console.log(`Opening chat with sender: ${senderId}`);
-    router.push(`/chat/${senderId}`);
+  const handleMessageRequester = (requesterId: string) => {
+    console.log(`Opening chat with requester: ${requesterId}`);
+    router.push(`/chat/${requesterId}`);
   };
 
   const getStatusBadgeStyle = (status: string) => {
@@ -355,7 +355,7 @@ export default function TripDetailsScreen() {
                 size={18} 
                 color={colors.primary} 
               />
-              <Text style={styles.detailLabel}>Suggested Price</Text>
+              <Text style={styles.detailLabel}>Suggested Fee</Text>
               <Text style={styles.detailValue}>{trip.suggestedPrice}</Text>
             </View>
           </View>
@@ -367,9 +367,20 @@ export default function TripDetailsScreen() {
           </View>
         </View>
 
-        {/* Meeting Points */}
+        {/* Handover Process */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Meeting Points</Text>
+          <Text style={styles.cardTitle}>Handover Process</Text>
+          <View style={styles.processNotice}>
+            <IconSymbol 
+              ios_icon_name="info.circle.fill" 
+              android_material_icon_name="info" 
+              size={18} 
+              color={colors.secondary} 
+            />
+            <Text style={styles.processNoticeText}>
+              You will collect items from requesters at pickup, carry them to the destination, and hand them over to our Centre representative.
+            </Text>
+          </View>
           <View style={styles.meetingPoint}>
             <IconSymbol 
               ios_icon_name="mappin.circle.fill" 
@@ -378,7 +389,7 @@ export default function TripDetailsScreen() {
               color={colors.secondary} 
             />
             <View style={styles.meetingInfo}>
-              <Text style={styles.meetingLabel}>Pickup</Text>
+              <Text style={styles.meetingLabel}>Pickup Point (Requester → You)</Text>
               <Text style={styles.meetingText}>{trip.meetingPoints.pickup}</Text>
             </View>
           </View>
@@ -391,15 +402,15 @@ export default function TripDetailsScreen() {
               color={colors.primary} 
             />
             <View style={styles.meetingInfo}>
-              <Text style={styles.meetingLabel}>Delivery</Text>
-              <Text style={styles.meetingText}>{trip.meetingPoints.delivery}</Text>
+              <Text style={styles.meetingLabel}>Handover Point (You → Centre Rep)</Text>
+              <Text style={styles.meetingText}>{trip.meetingPoints.handover}</Text>
             </View>
           </View>
         </View>
 
-        {/* Delivery Requests */}
+        {/* Carry Requests */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Delivery Requests ({requests.length})</Text>
+          <Text style={styles.sectionTitle}>Carry Requests ({requests.length})</Text>
           {requests.map((request, index) => (
             <React.Fragment key={index}>
               <View style={styles.requestCard}>
@@ -412,7 +423,7 @@ export default function TripDetailsScreen() {
                     color={colors.primary} 
                   />
                   <View style={styles.requestInfo}>
-                    <Text style={styles.requestSender}>{request.sender}</Text>
+                    <Text style={styles.requestSender}>{request.requester}</Text>
                     <Text style={styles.requestItem}>{request.item}</Text>
                   </View>
                   <View style={getStatusBadgeStyle(request.status)}>
@@ -515,13 +526,13 @@ export default function TripDetailsScreen() {
                         color={colors.warning} 
                       />
                       <Text style={styles.negotiatingNoticeText}>
-                        Waiting for {request.sender} to respond to your counter offer
+                        Waiting for {request.requester} to respond to your counter offer
                       </Text>
                     </View>
                     <TouchableOpacity 
                       style={styles.messageButton} 
                       activeOpacity={0.8}
-                      onPress={() => handleMessageSender(request.id)}
+                      onPress={() => handleMessageRequester(request.id)}
                     >
                       <IconSymbol 
                         ios_icon_name="message.fill" 
@@ -543,13 +554,13 @@ export default function TripDetailsScreen() {
                         color={colors.secondary} 
                       />
                       <Text style={styles.paymentNoticeText}>
-                        Payment notification sent to {request.sender} for {request.agreedAmount}
+                        Payment notification sent to {request.requester} for {request.agreedAmount}. You will collect the item at pickup and hand it over to our Centre representative at the destination.
                       </Text>
                     </View>
                     <TouchableOpacity 
                       style={styles.messageButton} 
                       activeOpacity={0.8}
-                      onPress={() => handleMessageSender(request.id)}
+                      onPress={() => handleMessageRequester(request.id)}
                     >
                       <IconSymbol 
                         ios_icon_name="message.fill" 
@@ -607,7 +618,7 @@ export default function TripDetailsScreen() {
                       color={colors.primary} 
                     />
                     <View style={styles.modalRequestDetails}>
-                      <Text style={styles.modalRequestSender}>{selectedRequest.sender}</Text>
+                      <Text style={styles.modalRequestSender}>{selectedRequest.requester}</Text>
                       <Text style={styles.modalRequestItem}>{selectedRequest.item} • {selectedRequest.weight}</Text>
                     </View>
                   </View>
@@ -633,7 +644,7 @@ export default function TripDetailsScreen() {
                       />
                     </View>
                     <Text style={styles.helperText}>
-                      Suggest a fair price that works for both parties
+                      Suggest a fair fee that works for both parties
                     </Text>
                   </View>
 
@@ -813,6 +824,23 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 20,
   },
+  processNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: colors.highlight,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  processNoticeText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+    lineHeight: 18,
+  },
   meetingPoint: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -825,6 +853,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     marginBottom: 4,
+    fontWeight: '600',
   },
   meetingText: {
     fontSize: 15,
@@ -1016,7 +1045,7 @@ const styles = StyleSheet.create({
   },
   paymentNotice: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 8,
     backgroundColor: colors.highlight,
     borderRadius: 8,
