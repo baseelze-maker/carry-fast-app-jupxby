@@ -34,17 +34,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      console.log('Checking auth status...');
       const authData = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
       if (authData) {
         const userData = JSON.parse(authData);
         setUser(userData);
         setIsAuthenticated(true);
         console.log('User is already authenticated:', userData.email);
+      } else {
+        console.log('No auth data found');
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
     } finally {
       setIsLoading(false);
+      console.log('Auth check complete');
     }
   };
 
@@ -66,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(userData);
       setIsAuthenticated(true);
-      console.log('Login successful');
+      console.log('Login successful, auth state updated');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -90,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(userData);
       setIsAuthenticated(true);
-      console.log('Signup successful');
+      console.log('Signup successful, auth state updated');
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
@@ -103,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
       setUser(null);
       setIsAuthenticated(false);
+      console.log('Logout successful');
     } catch (error) {
       console.error('Logout error:', error);
       throw error;

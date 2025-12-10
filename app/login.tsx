@@ -44,12 +44,14 @@ export default function LoginScreen() {
       // Call the login function from AuthContext
       await login(email, password);
       console.log('Login successful, navigating to main app');
-      // Navigation will happen automatically via the index.tsx redirect
-      router.replace('/(tabs)');
+      
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        router.replace('/(tabs)/(home)');
+      }, 100);
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert('Error', 'Failed to login. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };

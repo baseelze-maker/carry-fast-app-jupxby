@@ -58,12 +58,14 @@ export default function SignUpScreen() {
       // Call the signup function from AuthContext
       await signup(fullName, email, password, userType);
       console.log('Signup successful, navigating to main app');
-      // Navigate to main app
-      router.replace('/(tabs)');
+      
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        router.replace('/(tabs)/(home)');
+      }, 100);
     } catch (error) {
       console.error('Signup error:', error);
       Alert.alert('Error', 'Failed to create account. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
