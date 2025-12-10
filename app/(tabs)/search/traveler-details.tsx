@@ -109,13 +109,13 @@ export default function TravelerDetailsScreen() {
     // Close modal
     setShowRequestModal(false);
 
-    // Show success message
+    // Show success message with payment info
     Alert.alert(
       'Request Sent Successfully',
-      `Your request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nItem: ${itemDescription}\nWeight: ${itemWeight} kg\n\nYou will receive a notification when they respond. Average response time: ${traveler.responseTime}.\n\nOnce accepted, you&apos;ll hand over the item to ${traveler.name} at the pickup point. They will then carry it to the destination where our Centre representative will collect it.`,
+      `Your request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nItem: ${itemDescription}\nWeight: ${itemWeight} kg\n\nNext Step: Pay a $5 communication fee to unlock messaging with ${traveler.name}. This allows you to discuss pickup details and arrange payment for the carrying service.`,
       [
         {
-          text: 'OK',
+          text: 'Pay Communication Fee',
           onPress: () => {
             console.log('Request sent:', {
               traveler: traveler.name,
@@ -130,7 +130,25 @@ export default function TravelerDetailsScreen() {
             setItemWeight('');
             setOfferAmount('');
             setRequestMessage('');
-            // Navigate back
+            // Navigate to app payment
+            router.push({
+              pathname: '/app-payment',
+              params: {
+                travelerName: traveler.name,
+                requestId: traveler.id,
+              },
+            });
+          },
+        },
+        {
+          text: 'Later',
+          style: 'cancel',
+          onPress: () => {
+            // Reset form
+            setItemDescription('');
+            setItemWeight('');
+            setOfferAmount('');
+            setRequestMessage('');
             router.back();
           },
         },

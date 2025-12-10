@@ -6,36 +6,23 @@ import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 import * as Haptics from "expo-haptics";
 
-export default function TravelerPaymentScreen() {
+export default function AppPaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [selectedMethod, setSelectedMethod] = useState<'card' | 'cash' | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<'card' | 'paypal' | null>(null);
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [cardName, setCardName] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const amount = params.amount || '25';
+  const communicationFee = '5.00';
   const travelerName = params.travelerName || 'Traveler';
+  const requestId = params.requestId || '';
 
   const handlePayment = async () => {
     if (!selectedMethod) {
       Alert.alert('Payment Method Required', 'Please select a payment method.');
-      return;
-    }
-
-    if (selectedMethod === 'cash') {
-      Alert.alert(
-        'Cash Payment Arranged',
-        `You have chosen to pay ${travelerName} $${amount} in cash at the pickup location.\n\nPlease ensure you have the exact amount ready when meeting the traveler.\n\nReminder: This is separate from the $5 communication fee already paid to the app.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
       return;
     }
 
@@ -53,11 +40,17 @@ export default function TravelerPaymentScreen() {
     setTimeout(() => {
       setIsProcessing(false);
       Alert.alert(
-        'Payment Successful!',
-        `Your payment of $${amount} has been processed and will be transferred to ${travelerName}.\n\nYou can now coordinate the pickup details via messages.\n\nNote: This payment is for the carrying service and is separate from the communication fee paid to the app.`,
+        'Communication Fee Paid!',
+        `Your $${communicationFee} communication fee has been processed.\n\n✓ Messaging with ${travelerName} is now unlocked\n✓ You can discuss pickup details\n✓ Arrange payment for carrying service separately\n\nNote: The carrying service payment to the traveler is separate and will be arranged directly with them (cash or card).`,
         [
           {
-            text: 'OK',
+            text: 'Message Traveler',
+            onPress: () => {
+              router.replace(`/chat/${requestId}`);
+            },
+          },
+          {
+            text: 'Later',
             onPress: () => router.back(),
           },
         ]
@@ -97,7 +90,7 @@ export default function TravelerPaymentScreen() {
             color={colors.text} 
           />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Pay Traveler</Text>
+        <Text style={styles.headerTitle}>App Communication Fee</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -109,12 +102,12 @@ export default function TravelerPaymentScreen() {
         {/* Payment Type Badge */}
         <View style={styles.paymentTypeBadge}>
           <IconSymbol 
-            ios_icon_name="person.circle" 
-            android_material_icon_name="person" 
+            ios_icon_name="app.badge" 
+            android_material_icon_name="apps" 
             size={20} 
-            color={colors.primary} 
+            color={colors.secondary} 
           />
-          <Text style={styles.paymentTypeText}>Payment to Traveler (Carrying Service)</Text>
+          <Text style={styles.paymentTypeText}>Payment to App (Communication Fee)</Text>
         </View>
 
         {/* Info Banner */}
@@ -123,14 +116,13 @@ export default function TravelerPaymentScreen() {
             ios_icon_name="info.circle.fill" 
             android_material_icon_name="info" 
             size={24} 
-            color={colors.primary} 
+            color={colors.secondary} 
           />
           <View style={styles.infoBannerContent}>
-            <Text style={styles.infoBannerTitle}>Payment to Traveler</Text>
+            <Text style={styles.infoBannerTitle}>About This Payment</Text>
             <Text style={styles.infoBannerText}>
-              This payment is for the carrying service provided by {travelerName}. 
-              You can pay by card now or arrange to pay in cash at pickup.{'\n\n'}
-              <Text style={styles.infoBannerHighlight}>Note:</Text> This is separate from the $5 communication fee already paid to the app.
+              This is a one-time communication fee paid to the app to enable messaging with {travelerName}.{'\n\n'}
+              <Text style={styles.infoBannerHighlight}>Important:</Text> The carrying service payment to the traveler is separate and will be arranged directly with them (cash or card).
             </Text>
           </View>
         </View>
@@ -139,54 +131,97 @@ export default function TravelerPaymentScreen() {
         <View style={styles.amountCard}>
           <View style={styles.amountHeader}>
             <IconSymbol 
-              ios_icon_name="shippingbox.fill" 
-              android_material_icon_name="inventory" 
+              ios_icon_name="message.badge.fill" 
+              android_material_icon_name="message" 
               size={32} 
               color="rgba(255, 255, 255, 0.9)" 
             />
           </View>
-          <Text style={styles.amountLabel}>Carrying Service Fee</Text>
-          <Text style={styles.amountValue}>${amount}</Text>
+          <Text style={styles.amountLabel}>Communication Fee</Text>
+          <Text style={styles.amountValue}>${communicationFee}</Text>
           <Text style={styles.amountDescription}>
-            Payment to {travelerName} for carrying your item
+            One-time fee to unlock messaging
           </Text>
         </View>
 
-        {/* Payment Comparison */}
-        <View style={styles.comparisonCard}>
-          <Text style={styles.comparisonTitle}>Payment Summary</Text>
+        {/* Payment Flow Diagram */}
+        <View style={styles.flowCard}>
+          <Text style={styles.flowTitle}>Payment Flow</Text>
           
-          <View style={styles.comparisonRow}>
-            <View style={styles.comparisonItem}>
+          <View style={styles.flowStep}>
+            <View style={styles.flowStepNumber}>
+              <Text style={styles.flowStepNumberText}>1</Text>
+            </View>
+            <View style={styles.flowStepContent}>
+              <Text style={styles.flowStepTitle}>Pay Communication Fee (Now)</Text>
+              <Text style={styles.flowStepText}>$5.00 to the app → Unlocks messaging</Text>
+            </View>
+            <IconSymbol 
+              ios_icon_name="app.badge.checkmark" 
+              android_material_icon_name="check-circle" 
+              size={24} 
+              color={colors.secondary} 
+            />
+          </View>
+
+          <View style={styles.flowDivider} />
+
+          <View style={styles.flowStep}>
+            <View style={[styles.flowStepNumber, styles.flowStepNumberSecondary]}>
+              <Text style={styles.flowStepNumberText}>2</Text>
+            </View>
+            <View style={styles.flowStepContent}>
+              <Text style={styles.flowStepTitle}>Pay Traveler (Later)</Text>
+              <Text style={styles.flowStepText}>Carrying service fee → Directly to traveler (cash or card)</Text>
+            </View>
+            <IconSymbol 
+              ios_icon_name="person.circle" 
+              android_material_icon_name="person" 
+              size={24} 
+              color={colors.primary} 
+            />
+          </View>
+        </View>
+
+        {/* What You Get */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>What You Get</Text>
+          <View style={styles.benefitsList}>
+            <View style={styles.benefitItem}>
               <IconSymbol 
-                ios_icon_name="checkmark.circle.fill" 
-                android_material_icon_name="check-circle" 
+                ios_icon_name="message.fill" 
+                android_material_icon_name="message" 
                 size={20} 
                 color={colors.success} 
               />
-              <View style={styles.comparisonContent}>
-                <Text style={styles.comparisonLabel}>Communication Fee</Text>
-                <Text style={styles.comparisonValue}>$5.00 (Paid to App)</Text>
-              </View>
+              <Text style={styles.benefitText}>Direct messaging with {travelerName}</Text>
             </View>
-          </View>
-
-          <View style={styles.comparisonDivider} />
-
-          <View style={styles.comparisonRow}>
-            <View style={styles.comparisonItem}>
+            <View style={styles.benefitItem}>
               <IconSymbol 
-                ios_icon_name="circle" 
-                android_material_icon_name="radio-button-unchecked" 
+                ios_icon_name="calendar.badge.clock" 
+                android_material_icon_name="schedule" 
                 size={20} 
-                color={colors.primary} 
+                color={colors.success} 
               />
-              <View style={styles.comparisonContent}>
-                <Text style={styles.comparisonLabel}>Carrying Service Fee</Text>
-                <Text style={[styles.comparisonValue, styles.comparisonValueHighlight]}>
-                  ${amount} (Pay to Traveler)
-                </Text>
-              </View>
+              <Text style={styles.benefitText}>Coordinate pickup time and location</Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <IconSymbol 
+                ios_icon_name="creditcard" 
+                android_material_icon_name="payment" 
+                size={20} 
+                color={colors.success} 
+              />
+              <Text style={styles.benefitText}>Arrange carrying service payment method</Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <IconSymbol 
+                ios_icon_name="shield.checkmark.fill" 
+                android_material_icon_name="verified-user" 
+                size={20} 
+                color={colors.success} 
+              />
+              <Text style={styles.benefitText}>Secure communication platform</Text>
             </View>
           </View>
         </View>
@@ -216,7 +251,7 @@ export default function TravelerPaymentScreen() {
             </View>
             <View style={styles.methodInfo}>
               <Text style={styles.methodTitle}>Credit / Debit Card</Text>
-              <Text style={styles.methodSubtitle}>Pay securely online now</Text>
+              <Text style={styles.methodSubtitle}>Visa, Mastercard, Amex</Text>
             </View>
             <View style={[
               styles.radioButton,
@@ -229,56 +264,34 @@ export default function TravelerPaymentScreen() {
           <TouchableOpacity
             style={[
               styles.methodCard,
-              selectedMethod === 'cash' && styles.methodCardSelected,
+              selectedMethod === 'paypal' && styles.methodCardSelected,
             ]}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setSelectedMethod('cash');
+              setSelectedMethod('paypal');
             }}
             activeOpacity={0.7}
           >
             <View style={styles.methodIcon}>
               <IconSymbol 
-                ios_icon_name="banknote" 
-                android_material_icon_name="payments" 
+                ios_icon_name="dollarsign.circle.fill" 
+                android_material_icon_name="account-balance-wallet" 
                 size={24} 
-                color={selectedMethod === 'cash' ? colors.primary : colors.textSecondary} 
+                color={selectedMethod === 'paypal' ? colors.primary : colors.textSecondary} 
               />
             </View>
             <View style={styles.methodInfo}>
-              <Text style={styles.methodTitle}>Cash at Pickup</Text>
-              <Text style={styles.methodSubtitle}>Pay in person when meeting traveler</Text>
+              <Text style={styles.methodTitle}>PayPal</Text>
+              <Text style={styles.methodSubtitle}>Pay with your PayPal account</Text>
             </View>
             <View style={[
               styles.radioButton,
-              selectedMethod === 'cash' && styles.radioButtonSelected,
+              selectedMethod === 'paypal' && styles.radioButtonSelected,
             ]}>
-              {selectedMethod === 'cash' && <View style={styles.radioButtonInner} />}
+              {selectedMethod === 'paypal' && <View style={styles.radioButtonInner} />}
             </View>
           </TouchableOpacity>
         </View>
-
-        {/* Cash Payment Notice */}
-        {selectedMethod === 'cash' && (
-          <View style={styles.cashNotice}>
-            <IconSymbol 
-              ios_icon_name="exclamationmark.triangle.fill" 
-              android_material_icon_name="warning" 
-              size={20} 
-              color={colors.warning} 
-            />
-            <View style={styles.cashNoticeContent}>
-              <Text style={styles.cashNoticeTitle}>Cash Payment Reminder</Text>
-              <Text style={styles.cashNoticeText}>
-                - Bring exact amount: ${amount}{'\n'}
-                - Pay at the pickup location{'\n'}
-                - Get confirmation from traveler{'\n'}
-                - Keep any receipt if provided{'\n'}
-                - This is separate from the app communication fee
-              </Text>
-            </View>
-          </View>
-        )}
 
         {/* Card Details Form */}
         {selectedMethod === 'card' && (
@@ -387,20 +400,43 @@ export default function TravelerPaymentScreen() {
           </View>
         )}
 
-        {/* Security Notice */}
-        {selectedMethod === 'card' && (
-          <View style={styles.securityNotice}>
+        {/* Payment Breakdown */}
+        <View style={styles.breakdownCard}>
+          <Text style={styles.breakdownTitle}>Payment Breakdown</Text>
+          <View style={styles.breakdownRow}>
+            <Text style={styles.breakdownLabel}>Communication Fee (to App)</Text>
+            <Text style={styles.breakdownValue}>${communicationFee}</Text>
+          </View>
+          <View style={styles.breakdownDivider} />
+          <View style={styles.breakdownRow}>
+            <Text style={styles.breakdownTotalLabel}>Total Due Now</Text>
+            <Text style={styles.breakdownTotalValue}>${communicationFee}</Text>
+          </View>
+          <View style={styles.breakdownNote}>
             <IconSymbol 
-              ios_icon_name="lock.shield.fill" 
-              android_material_icon_name="security" 
-              size={20} 
-              color={colors.success} 
+              ios_icon_name="info.circle" 
+              android_material_icon_name="info" 
+              size={16} 
+              color={colors.textSecondary} 
             />
-            <Text style={styles.securityText}>
-              Your payment information is encrypted and secure. Funds will be transferred directly to the traveler.
+            <Text style={styles.breakdownNoteText}>
+              Carrying service payment to traveler will be arranged separately (cash or card)
             </Text>
           </View>
-        )}
+        </View>
+
+        {/* Security Notice */}
+        <View style={styles.securityNotice}>
+          <IconSymbol 
+            ios_icon_name="lock.shield.fill" 
+            android_material_icon_name="security" 
+            size={20} 
+            color={colors.success} 
+          />
+          <Text style={styles.securityText}>
+            Your payment information is encrypted and secure
+          </Text>
+        </View>
       </ScrollView>
 
       {/* Pay Button */}
@@ -408,10 +444,10 @@ export default function TravelerPaymentScreen() {
         <TouchableOpacity
           style={[
             styles.payButton,
-            (!selectedMethod || (selectedMethod === 'card' && isProcessing)) && styles.payButtonDisabled,
+            (!selectedMethod || isProcessing) && styles.payButtonDisabled,
           ]}
           onPress={handlePayment}
-          disabled={!selectedMethod || (selectedMethod === 'card' && isProcessing)}
+          disabled={!selectedMethod || isProcessing}
           activeOpacity={0.8}
         >
           {isProcessing ? (
@@ -424,9 +460,7 @@ export default function TravelerPaymentScreen() {
                 size={24} 
                 color="#FFFFFF" 
               />
-              <Text style={styles.payButtonText}>
-                {selectedMethod === 'cash' ? 'Confirm Cash Payment' : `Pay $${amount} to Traveler`}
-              </Text>
+              <Text style={styles.payButtonText}>Pay ${communicationFee} to App</Text>
             </>
           )}
         </TouchableOpacity>
@@ -474,30 +508,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: `${colors.primary}20`,
+    backgroundColor: `${colors.secondary}20`,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     alignSelf: 'center',
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: `${colors.primary}50`,
+    borderColor: `${colors.secondary}50`,
   },
   paymentTypeText: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.secondary,
   },
   infoBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: `${colors.secondary}15`,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: `${colors.primary}40`,
+    borderColor: `${colors.secondary}40`,
   },
   infoBannerContent: {
     flex: 1,
@@ -515,10 +549,10 @@ const styles = StyleSheet.create({
   },
   infoBannerHighlight: {
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.secondary,
   },
   amountCard: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.secondary,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
@@ -544,7 +578,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
   },
-  comparisonCard: {
+  flowCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 20,
@@ -552,38 +586,48 @@ const styles = StyleSheet.create({
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
     elevation: 2,
   },
-  comparisonTitle: {
+  flowTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 16,
   },
-  comparisonRow: {
-    marginBottom: 0,
-  },
-  comparisonItem: {
+  flowStep: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  comparisonContent: {
+  flowStepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.secondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flowStepNumberSecondary: {
+    backgroundColor: colors.primary,
+  },
+  flowStepNumberText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  flowStepContent: {
     flex: 1,
   },
-  comparisonLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
+  flowStepTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
     marginBottom: 2,
   },
-  comparisonValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
+  flowStepText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 16,
   },
-  comparisonValueHighlight: {
-    color: colors.primary,
-    fontSize: 16,
-  },
-  comparisonDivider: {
+  flowDivider: {
     height: 1,
     backgroundColor: colors.border,
     marginVertical: 16,
@@ -596,6 +640,23 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
     marginBottom: 16,
+  },
+  benefitsList: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    gap: 16,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  benefitText: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.text,
+    lineHeight: 20,
   },
   methodCard: {
     backgroundColor: colors.card,
@@ -651,31 +712,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: colors.primary,
   },
-  cashNotice: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    backgroundColor: `${colors.warning}15`,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: `${colors.warning}40`,
-  },
-  cashNoticeContent: {
-    flex: 1,
-  },
-  cashNoticeTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  cashNoticeText: {
-    fontSize: 13,
-    color: colors.text,
-    lineHeight: 20,
-  },
   formGroup: {
     marginBottom: 16,
   },
@@ -708,6 +744,63 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
+  breakdownCard: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  breakdownTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  breakdownLabel: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  breakdownValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  breakdownDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 12,
+  },
+  breakdownTotalLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  breakdownTotalValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.secondary,
+  },
+  breakdownNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  breakdownNoteText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.textSecondary,
+    lineHeight: 16,
+  },
   securityNotice: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -732,7 +825,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   payButton: {
-    backgroundColor: colors.success,
+    backgroundColor: colors.secondary,
     borderRadius: 12,
     padding: 18,
     flexDirection: 'row',

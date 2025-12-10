@@ -9,6 +9,19 @@ import { colors } from "@/styles/commonStyles";
 const initialNotifications = [
   {
     id: '1',
+    type: 'app_payment_required',
+    title: 'Communication Fee Required',
+    message: 'Pay $5 communication fee to unlock messaging with Sarah Johnson and discuss your carry request',
+    sender: 'Sarah Johnson',
+    amount: '$5',
+    time: '30s ago',
+    read: false,
+    icon: 'message.badge.fill',
+    iconAndroid: 'message',
+    iconColor: colors.secondary,
+  },
+  {
+    id: '2',
     type: 'counter_offer',
     title: 'Counter Offer Received',
     message: 'Sarah Johnson sent a counter offer of $35 for your carry request',
@@ -22,20 +35,20 @@ const initialNotifications = [
     iconColor: colors.warning,
   },
   {
-    id: '2',
-    type: 'payment_request',
-    title: 'Payment Required',
-    message: 'Your carry request has been accepted! Please proceed with payment of $25.',
+    id: '3',
+    type: 'traveler_payment_request',
+    title: 'Pay Traveler',
+    message: 'Your request was accepted! Pay $25 to Sarah Johnson for the carrying service (card or cash)',
     sender: 'Sarah Johnson',
     amount: '$25',
     time: '2m ago',
     read: false,
     icon: 'creditcard.fill',
     iconAndroid: 'payment',
-    iconColor: colors.warning,
+    iconColor: colors.primary,
   },
   {
-    id: '3',
+    id: '4',
     type: 'offer_accepted',
     title: 'Offer Accepted',
     message: 'Mike Chen accepted your offer of $30. Please proceed with payment.',
@@ -48,7 +61,7 @@ const initialNotifications = [
     iconColor: colors.success,
   },
   {
-    id: '4',
+    id: '5',
     type: 'request',
     title: 'New Carry Request',
     message: 'Mike Chen wants you to carry an item on your trip to London. Offered amount: $25',
@@ -60,7 +73,7 @@ const initialNotifications = [
     iconColor: colors.secondary,
   },
   {
-    id: '5',
+    id: '6',
     type: 'message',
     title: 'New Message',
     message: 'Sarah Johnson: "Sure, I can carry that for you!"',
@@ -71,7 +84,7 @@ const initialNotifications = [
     iconColor: colors.primary,
   },
   {
-    id: '6',
+    id: '7',
     type: 'accepted',
     title: 'Request Accepted',
     message: 'Emma Wilson accepted your carry request for $30',
@@ -83,20 +96,20 @@ const initialNotifications = [
     iconColor: colors.success,
   },
   {
-    id: '7',
-    type: 'payment_request',
-    title: 'Payment Required',
-    message: 'David Lee accepted your request. Please pay $20 to confirm.',
+    id: '8',
+    type: 'traveler_payment_request',
+    title: 'Pay Traveler',
+    message: 'David Lee accepted your request. Pay $20 for the carrying service.',
     sender: 'David Lee',
     amount: '$20',
     time: '5h ago',
     read: true,
     icon: 'creditcard.fill',
     iconAndroid: 'payment',
-    iconColor: colors.warning,
+    iconColor: colors.primary,
   },
   {
-    id: '8',
+    id: '9',
     type: 'review',
     title: 'New Review',
     message: 'David Lee left you a 5-star review',
@@ -107,7 +120,7 @@ const initialNotifications = [
     iconColor: colors.accent,
   },
   {
-    id: '9',
+    id: '10',
     type: 'reminder',
     title: 'Trip Reminder',
     message: 'Your trip to Paris is tomorrow at 10:00 AM. Remember to collect items from requesters at pickup and hand them over to our Centre representative at the destination.',
@@ -118,7 +131,7 @@ const initialNotifications = [
     iconColor: colors.warning,
   },
   {
-    id: '10',
+    id: '11',
     type: 'completed',
     title: 'Handover Completed',
     message: 'Your item was successfully handed over to our Centre representative by John Smith',
@@ -151,10 +164,26 @@ export default function NotificationsScreen() {
     );
 
     // Navigate based on notification type
-    if (notification.type === 'payment_request' || notification.type === 'offer_accepted') {
-      // In a real app, this would navigate to a payment screen
-      console.log('Opening payment screen for:', notification.amount);
-      // router.push('/payment');
+    if (notification.type === 'app_payment_required') {
+      // Navigate to app payment screen (communication fee)
+      console.log('Opening app payment screen for:', notification.amount);
+      router.push({
+        pathname: '/app-payment',
+        params: {
+          travelerName: notification.sender,
+          requestId: notification.id,
+        },
+      });
+    } else if (notification.type === 'traveler_payment_request' || notification.type === 'offer_accepted') {
+      // Navigate to traveler payment screen
+      console.log('Opening traveler payment screen for:', notification.amount);
+      router.push({
+        pathname: '/payment',
+        params: {
+          amount: notification.amount?.replace('$', ''),
+          travelerName: notification.sender,
+        },
+      });
     } else if (notification.type === 'counter_offer') {
       // Navigate to the request details or chat to respond
       console.log('Opening counter offer details');
@@ -210,16 +239,28 @@ export default function NotificationsScreen() {
                   <Text style={styles.notificationMessage} numberOfLines={2}>
                     {notification.message}
                   </Text>
-                  {notification.type === 'payment_request' && notification.amount && (
+                  {notification.type === 'app_payment_required' && notification.amount && (
+                    <View style={styles.appPaymentBadge}>
+                      <IconSymbol 
+                        ios_icon_name="message.badge.fill" 
+                        android_material_icon_name="message" 
+                        size={14} 
+                        color={colors.secondary} 
+                      />
+                      <Text style={styles.appPaymentAmount}>{notification.amount}</Text>
+                      <Text style={styles.appPaymentAction}>• Communication fee</Text>
+                    </View>
+                  )}
+                  {notification.type === 'traveler_payment_request' && notification.amount && (
                     <View style={styles.paymentBadge}>
                       <IconSymbol 
                         ios_icon_name="dollarsign.circle.fill" 
                         android_material_icon_name="attach-money" 
                         size={14} 
-                        color={colors.warning} 
+                        color={colors.primary} 
                       />
                       <Text style={styles.paymentAmount}>{notification.amount}</Text>
-                      <Text style={styles.paymentAction}>• Tap to pay</Text>
+                      <Text style={styles.paymentAction}>• Pay traveler</Text>
                     </View>
                   )}
                   {notification.type === 'counter_offer' && notification.counterAmount && (
@@ -362,23 +403,46 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 6,
   },
-  paymentBadge: {
+  appPaymentBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: `${colors.warning}15`,
+    backgroundColor: `${colors.secondary}15`,
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: `${colors.warning}40`,
+    borderColor: `${colors.secondary}40`,
+  },
+  appPaymentAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.secondary,
+  },
+  appPaymentAction: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  paymentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: `${colors.primary}15`,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: `${colors.primary}40`,
   },
   paymentAmount: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.warning,
+    color: colors.primary,
   },
   paymentAction: {
     fontSize: 11,

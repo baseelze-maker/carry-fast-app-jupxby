@@ -86,7 +86,7 @@ export default function TripDetailsScreen() {
     
     Alert.alert(
       'Accept Request',
-      `Accept ${request.requester.name}'s request for $${request.counterOffer || request.offeredAmount}?\n\nThe requester will be notified to proceed with payment.`,
+      `Accept ${request.requester.name}'s request for $${request.counterOffer || request.offeredAmount}?\n\nThe requester will be notified to pay the carrying service fee.`,
       [
         {
           text: 'Cancel',
@@ -107,7 +107,7 @@ export default function TripDetailsScreen() {
             
             Alert.alert(
               'Request Accepted!',
-              `${request.requester.name} has been notified to proceed with payment of $${request.counterOffer || request.offeredAmount}.`,
+              `${request.requester.name} has been notified to pay $${request.counterOffer || request.offeredAmount} for the carrying service.\n\nThey can choose to pay by card now or arrange cash payment at pickup.\n\nYou can now message them to coordinate pickup details.`,
               [{ text: 'OK' }]
             );
           },
