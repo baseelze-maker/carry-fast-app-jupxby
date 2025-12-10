@@ -1,8 +1,10 @@
 
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from "react-native";
+import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
+import * as Haptics from "expo-haptics";
 
 // Mock data
 const mockMyTrips = [
@@ -34,6 +36,7 @@ const mockMyRequests = [
     to: 'Tokyo, Japan',
     date: '2024-02-18',
     status: 'pending',
+    amount: 25,
   },
   {
     id: '2',
@@ -42,11 +45,31 @@ const mockMyRequests = [
     to: 'Berlin, Germany',
     date: '2024-01-25',
     status: 'accepted',
+    amount: 30,
   },
 ];
 
 export default function TripsScreen() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'trips' | 'requests'>('trips');
+
+  const handleViewTripDetails = (tripId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    console.log('Opening trip details for:', tripId);
+    router.push('/trips/trip-details');
+  };
+
+  const handlePayment = (request: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    console.log('Opening payment for:', request.id);
+    router.push({
+      pathname: '/payment',
+      params: {
+        amount: request.amount,
+        travelerName: request.traveler,
+      },
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -59,7 +82,10 @@ export default function TripsScreen() {
       <View style={styles.tabsContainer}>
         <TouchableOpacity 
           style={[styles.tab, activeTab === 'trips' && styles.activeTab]}
-          onPress={() => setActiveTab('trips')}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setActiveTab('trips');
+          }}
           activeOpacity={0.7}
         >
           <Text style={[styles.tabText, activeTab === 'trips' && styles.activeTabText]}>
@@ -68,7 +94,10 @@ export default function TripsScreen() {
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.tab, activeTab === 'requests' && styles.activeTab]}
-          onPress={() => setActiveTab('requests')}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setActiveTab('requests');
+          }}
           activeOpacity={0.7}
         >
           <Text style={[styles.tabText, activeTab === 'requests' && styles.activeTabText]}>
@@ -86,7 +115,7 @@ export default function TripsScreen() {
           <View style={styles.section}>
             {mockMyTrips.map((trip, index) => (
               <React.Fragment key={index}>
-                <View key={trip.id} style={styles.card}>
+                <View style={styles.card}>
                   {/* Status Badge */}
                   <View style={[
                     styles.statusBadge,
@@ -159,7 +188,11 @@ export default function TripsScreen() {
 
                   {/* Actions */}
                   <View style={styles.actionsRow}>
-                    <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+                    <TouchableOpacity 
+                      style={styles.actionButton} 
+                      activeOpacity={0.7}
+                      onPress={() => handleViewTripDetails(trip.id)}
+                    >
                       <Text style={styles.actionButtonText}>View Details</Text>
                     </TouchableOpacity>
                     {trip.status === 'active' && (
@@ -176,14 +209,14 @@ export default function TripsScreen() {
           <View style={styles.section}>
             {mockMyRequests.map((request, index) => (
               <React.Fragment key={index}>
-                <View key={request.id} style={styles.card}>
+                <View style={styles.card}>
                   {/* Status Badge */}
                   <View style={[
                     styles.statusBadge,
                     request.status === 'accepted' ? styles.statusAccepted : styles.statusPending
                   ]}>
                     <Text style={styles.statusText}>
-                      {request.status === 'accepted' ? 'Accepted' : 'Pending'}
+                      {request.status === 'accepted' ? 'Accepted - Pay Now' : 'Pending'}
                     </Text>
                   </View>
 
@@ -224,7 +257,7 @@ export default function TripsScreen() {
                     </View>
                   </View>
 
-                  {/* Date */}
+                  {/* Date & Amount */}
                   <View style={styles.detailsRow}>
                     <View style={styles.detailItem}>
                       <IconSymbol 
@@ -235,17 +268,42 @@ export default function TripsScreen() {
                       />
                       <Text style={styles.detailText}>{request.date}</Text>
                     </View>
+                    <View style={styles.detailItem}>
+                      <IconSymbol 
+                        ios_icon_name="dollarsign.circle" 
+                        android_material_icon_name="attach-money" 
+                        size={14} 
+                        color={colors.textSecondary} 
+                      />
+                      <Text style={styles.detailText}>${request.amount}</Text>
+                    </View>
                   </View>
 
                   {/* Actions */}
                   <View style={styles.actionsRow}>
-                    <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
-                      <Text style={styles.actionButtonText}>View Details</Text>
-                    </TouchableOpacity>
-                    {request.status === 'pending' && (
-                      <TouchableOpacity style={styles.actionButtonDanger} activeOpacity={0.7}>
-                        <Text style={styles.actionButtonDangerText}>Cancel</Text>
+                    {request.status === 'accepted' ? (
+                      <TouchableOpacity 
+                        style={styles.payButton} 
+                        activeOpacity={0.7}
+                        onPress={() => handlePayment(request)}
+                      >
+                        <IconSymbol 
+                          ios_icon_name="creditcard.fill" 
+                          android_material_icon_name="payment" 
+                          size={18} 
+                          color="#FFFFFF" 
+                        />
+                        <Text style={styles.payButtonText}>Pay ${request.amount}</Text>
                       </TouchableOpacity>
+                    ) : (
+                      <>
+                        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+                          <Text style={styles.actionButtonText}>View Details</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.actionButtonDanger} activeOpacity={0.7}>
+                          <Text style={styles.actionButtonDangerText}>Cancel</Text>
+                        </TouchableOpacity>
+                      </>
                     )}
                   </View>
                 </View>
@@ -452,5 +510,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.error,
+  },
+  payButton: {
+    flex: 1,
+    backgroundColor: colors.success,
+    borderRadius: 8,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  payButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
