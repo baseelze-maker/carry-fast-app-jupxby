@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { colors } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUpScreen() {
   const [fullName, setFullName] = useState('');
@@ -25,6 +26,7 @@ export default function SignUpScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState<'traveler' | 'sender' | 'both'>('both');
+  const { signup } = useAuth();
 
   const handleSignUp = async () => {
     console.log('Sign up attempt with:', email, fullName, userType);
@@ -52,20 +54,18 @@ export default function SignUpScreen() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Call the signup function from AuthContext
+      await signup(fullName, email, password, userType);
+      console.log('Signup successful, navigating to main app');
+      // Navigate to main app
+      router.replace('/(tabs)');
+    } catch (error) {
+      console.error('Signup error:', error);
+      Alert.alert('Error', 'Failed to create account. Please try again.');
+    } finally {
       setIsLoading(false);
-      Alert.alert(
-        'Success',
-        'Account created successfully! Please sign in.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/login'),
-          },
-        ]
-      );
-    }, 1000);
+    }
   };
 
   return (

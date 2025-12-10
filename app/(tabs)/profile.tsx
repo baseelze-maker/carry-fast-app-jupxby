@@ -1,10 +1,41 @@
 
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from "react-native";
+import { router } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProfileScreen() {
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              console.log('Logged out successfully');
+              router.replace('/login');
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Error', 'Failed to log out. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -35,8 +66,8 @@ export default function ProfileScreen() {
               />
             </TouchableOpacity>
           </View>
-          <Text style={styles.profileName}>John Doe</Text>
-          <Text style={styles.profileEmail}>john.doe@example.com</Text>
+          <Text style={styles.profileName}>{user?.fullName || 'User'}</Text>
+          <Text style={styles.profileEmail}>{user?.email || 'user@example.com'}</Text>
           
           {/* Stats */}
           <View style={styles.statsContainer}>
@@ -217,7 +248,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8} onPress={handleLogout}>
           <IconSymbol 
             ios_icon_name="arrow.right.square" 
             android_material_icon_name="logout" 

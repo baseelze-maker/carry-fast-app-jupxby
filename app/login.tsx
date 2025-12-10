@@ -15,12 +15,14 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { colors } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     console.log('Login attempt with:', email);
@@ -38,14 +40,18 @@ export default function LoginScreen() {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // For now, just navigate to the main app
-      // Later, you'll add actual authentication logic here
+    try {
+      // Call the login function from AuthContext
+      await login(email, password);
       console.log('Login successful, navigating to main app');
+      // Navigation will happen automatically via the index.tsx redirect
       router.replace('/(tabs)');
-    }, 1000);
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Failed to login. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
