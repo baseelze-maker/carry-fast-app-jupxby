@@ -19,6 +19,8 @@ const mockTravelers = [
     price: 50,
     rating: 4.8,
     canDeliverAtFirstDestination: true,
+    verified: true,
+    completedTrips: 15,
   },
   {
     id: '2',
@@ -31,6 +33,8 @@ const mockTravelers = [
     price: 40,
     rating: 4.9,
     canDeliverAtFirstDestination: false,
+    verified: true,
+    completedTrips: 24,
   },
   {
     id: '3',
@@ -43,6 +47,8 @@ const mockTravelers = [
     price: 60,
     rating: 4.7,
     canDeliverAtFirstDestination: true,
+    verified: true,
+    completedTrips: 12,
   },
   {
     id: '4',
@@ -55,6 +61,8 @@ const mockTravelers = [
     price: 45,
     rating: 4.6,
     canDeliverAtFirstDestination: true,
+    verified: false,
+    completedTrips: 8,
   },
   {
     id: '5',
@@ -67,6 +75,22 @@ const mockTravelers = [
     price: 55,
     rating: 4.8,
     canDeliverAtFirstDestination: false,
+    verified: true,
+    completedTrips: 20,
+  },
+  {
+    id: '6',
+    name: 'Lisa Anderson',
+    from: 'Boston, USA',
+    to: 'Rome, Italy',
+    finalDestination: 'Florence, Italy',
+    date: '2024-02-28',
+    weight: 4,
+    price: 48,
+    rating: 4.9,
+    canDeliverAtFirstDestination: true,
+    verified: true,
+    completedTrips: 30,
   },
 ];
 
@@ -84,6 +108,7 @@ export default function SearchScreen() {
   const [minWeight, setMinWeight] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [minRating, setMinRating] = useState(0);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   const handleDateChange = (event: any, date?: Date) => {
     setShowDatePicker(false);
@@ -97,6 +122,7 @@ export default function SearchScreen() {
     setMinWeight('');
     setMaxPrice('');
     setMinRating(0);
+    setVerifiedOnly(false);
   };
 
   const getActiveFilterCount = () => {
@@ -105,6 +131,7 @@ export default function SearchScreen() {
     if (minWeight) count++;
     if (maxPrice) count++;
     if (minRating > 0) count++;
+    if (verifiedOnly) count++;
     return count;
   };
 
@@ -116,7 +143,8 @@ export default function SearchScreen() {
       const matchesSearch = 
         traveler.to.toLowerCase().includes(searchLower) ||
         traveler.finalDestination.toLowerCase().includes(searchLower) ||
-        traveler.from.toLowerCase().includes(searchLower);
+        traveler.from.toLowerCase().includes(searchLower) ||
+        traveler.name.toLowerCase().includes(searchLower);
       
       if (!matchesSearch) return false;
 
@@ -140,6 +168,11 @@ export default function SearchScreen() {
 
       // Rating filter
       if (minRating > 0 && traveler.rating < minRating) {
+        return false;
+      }
+
+      // Verified filter
+      if (verifiedOnly && !traveler.verified) {
         return false;
       }
 
@@ -170,6 +203,14 @@ export default function SearchScreen() {
   const filteredTravelers = getFilteredTravelers();
   const activeFilterCount = getActiveFilterCount();
 
+  const handleTravelerPress = (travelerId: string) => {
+    console.log('Opening traveler details for:', travelerId);
+    router.push({
+      pathname: '/search/traveler-details',
+      params: { travelerId }
+    });
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -194,7 +235,7 @@ export default function SearchScreen() {
             />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search by destination..."
+              placeholder="Search by destination or name..."
               placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -308,7 +349,7 @@ export default function SearchScreen() {
                 <TouchableOpacity 
                   style={styles.travelerCard}
                   activeOpacity={0.7}
-                  onPress={() => router.push('/search/traveler-details')}
+                  onPress={() => handleTravelerPress(traveler.id)}
                 >
                   {/* Traveler Header */}
                   <View style={styles.travelerHeader}>
@@ -321,7 +362,17 @@ export default function SearchScreen() {
                       />
                     </View>
                     <View style={styles.travelerInfo}>
-                      <Text style={styles.travelerName}>{traveler.name}</Text>
+                      <View style={styles.nameRow}>
+                        <Text style={styles.travelerName}>{traveler.name}</Text>
+                        {traveler.verified && (
+                          <IconSymbol 
+                            ios_icon_name="checkmark.seal.fill" 
+                            android_material_icon_name="verified" 
+                            size={16} 
+                            color={colors.secondary} 
+                          />
+                        )}
+                      </View>
                       <View style={styles.ratingContainer}>
                         <IconSymbol 
                           ios_icon_name="star.fill" 
@@ -330,6 +381,7 @@ export default function SearchScreen() {
                           color={colors.accent} 
                         />
                         <Text style={styles.ratingText}>{traveler.rating}</Text>
+                        <Text style={styles.tripsText}>• {traveler.completedTrips} trips</Text>
                       </View>
                     </View>
                     <View style={styles.priceContainer}>
@@ -403,7 +455,7 @@ export default function SearchScreen() {
                           size={14} 
                           color={colors.textSecondary} 
                         />
-                        <Text style={styles.detailText}>{traveler.weight} kg</Text>
+                        <Text style={styles.detailText}>{traveler.weight} kg available</Text>
                       </View>
                     </View>
                   </View>
@@ -412,7 +464,7 @@ export default function SearchScreen() {
                   <TouchableOpacity 
                     style={styles.contactButton} 
                     activeOpacity={0.8}
-                    onPress={() => router.push('/search/traveler-details')}
+                    onPress={() => handleTravelerPress(traveler.id)}
                   >
                     <Text style={styles.contactButtonText}>View Details & Send Request</Text>
                     <IconSymbol 
@@ -533,6 +585,27 @@ export default function SearchScreen() {
                     </TouchableOpacity>
                   ))}
                 </View>
+              </View>
+
+              {/* Verified Filter */}
+              <View style={styles.filterSection}>
+                <TouchableOpacity 
+                  style={styles.verifiedToggle}
+                  onPress={() => setVerifiedOnly(!verifiedOnly)}
+                >
+                  <View style={styles.verifiedToggleLeft}>
+                    <IconSymbol 
+                      ios_icon_name="checkmark.seal.fill" 
+                      android_material_icon_name="verified" 
+                      size={20} 
+                      color={verifiedOnly ? colors.secondary : colors.textSecondary} 
+                    />
+                    <Text style={styles.verifiedToggleText}>Verified travelers only</Text>
+                  </View>
+                  <View style={[styles.toggleSwitch, verifiedOnly && styles.toggleSwitchActive]}>
+                    <View style={[styles.toggleThumb, verifiedOnly && styles.toggleThumbActive]} />
+                  </View>
+                </TouchableOpacity>
               </View>
             </ScrollView>
 
@@ -731,11 +804,16 @@ const styles = StyleSheet.create({
   travelerInfo: {
     flex: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
   travelerName: {
     fontSize: 17,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -746,6 +824,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.text,
+  },
+  tripsText: {
+    fontSize: 12,
+    color: colors.textSecondary,
   },
   priceContainer: {
     backgroundColor: colors.primary,
@@ -934,6 +1016,46 @@ const styles = StyleSheet.create({
   },
   ratingOptionTextActive: {
     color: colors.card,
+  },
+  verifiedToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  verifiedToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  verifiedToggleText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  toggleSwitch: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.border,
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleSwitchActive: {
+    backgroundColor: colors.secondary,
+  },
+  toggleThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.card,
+  },
+  toggleThumbActive: {
+    alignSelf: 'flex-end',
   },
   modalActions: {
     flexDirection: 'row',

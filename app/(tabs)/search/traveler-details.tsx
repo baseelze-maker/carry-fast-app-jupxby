@@ -1,43 +1,79 @@
 
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput, Alert, Modal } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 
 export default function TravelerDetailsScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [itemDescription, setItemDescription] = useState('');
   const [itemWeight, setItemWeight] = useState('');
   const [offerAmount, setOfferAmount] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
 
-  // Mock traveler data
+  // Mock traveler data - In production, fetch based on params.travelerId
   const traveler = {
+    id: params.travelerId || '2',
     name: 'Sarah Johnson',
     rating: 4.9,
     reviews: 24,
     verified: true,
     joinedDate: 'Jan 2023',
     completedTrips: 18,
+    responseTime: '2 hours',
     from: 'Los Angeles, USA',
     to: 'Paris, France',
+    finalDestination: 'Lyon, France',
     date: '2024-02-18',
     time: '10:00 AM',
     weight: '3 kg',
     suggestedPrice: '$40',
-    description: 'I travel frequently for business. Happy to help deliver small items. I prefer documents and small packages only.',
+    description: 'I travel frequently for business between LA and France. Happy to help deliver small items like documents, gifts, or small packages. I prefer items that are well-packaged and clearly labeled. I have experience with international deliveries and understand customs requirements.',
     meetingPoints: {
-      pickup: 'LAX Airport, Terminal B',
-      delivery: 'Charles de Gaulle Airport, Terminal 2E',
+      pickup: 'LAX Airport, Terminal B - International Departures',
+      delivery: 'Charles de Gaulle Airport, Terminal 2E - Arrivals Hall',
     },
+    preferences: [
+      'Documents and papers',
+      'Small gifts and souvenirs',
+      'Electronics (properly packaged)',
+      'Books and magazines',
+    ],
+    restrictions: [
+      'No liquids or perishables',
+      'No fragile items without proper packaging',
+      'Maximum 3kg per delivery',
+    ],
   };
 
   const reviews = [
-    { id: '1', user: 'Mike Chen', rating: 5, comment: 'Very reliable! Delivered my documents on time.', date: 'Jan 2024' },
-    { id: '2', user: 'Emma Wilson', rating: 5, comment: 'Great communication throughout the process.', date: 'Dec 2023' },
-    { id: '3', user: 'David Lee', rating: 4, comment: 'Good service, slight delay but kept me informed.', date: 'Nov 2023' },
+    { 
+      id: '1', 
+      user: 'Mike Chen', 
+      rating: 5, 
+      comment: 'Very reliable! Delivered my documents on time and kept me updated throughout the journey. Highly recommend!', 
+      date: 'Jan 2024',
+      verified: true,
+    },
+    { 
+      id: '2', 
+      user: 'Emma Wilson', 
+      rating: 5, 
+      comment: 'Great communication throughout the process. Sarah was very professional and careful with my package.', 
+      date: 'Dec 2023',
+      verified: true,
+    },
+    { 
+      id: '3', 
+      user: 'David Lee', 
+      rating: 4, 
+      comment: 'Good service, slight delay but kept me informed. Would use again.', 
+      date: 'Nov 2023',
+      verified: false,
+    },
   ];
 
   const handleSendRequest = () => {
@@ -59,19 +95,31 @@ export default function TravelerDetailsScreen() {
       return;
     }
 
+    const weight = parseFloat(itemWeight);
+    if (isNaN(weight) || weight <= 0) {
+      Alert.alert('Invalid Weight', 'Please enter a valid weight.');
+      return;
+    }
+
+    if (weight > 3) {
+      Alert.alert('Weight Limit Exceeded', 'This traveler can only carry up to 3 kg. Please adjust your item weight.');
+      return;
+    }
+
     // Close modal
     setShowRequestModal(false);
 
     // Show success message
     Alert.alert(
-      'Request Sent',
-      `Your delivery request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nYou will be notified when they respond.`,
+      'Request Sent Successfully',
+      `Your delivery request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nItem: ${itemDescription}\nWeight: ${itemWeight} kg\n\nYou will receive a notification when they respond. Average response time: ${traveler.responseTime}.`,
       [
         {
           text: 'OK',
           onPress: () => {
             console.log('Request sent:', {
               traveler: traveler.name,
+              travelerId: traveler.id,
               item: itemDescription,
               weight: itemWeight,
               offer: offerAmount,
@@ -91,8 +139,8 @@ export default function TravelerDetailsScreen() {
   };
 
   const handleMessageTraveler = () => {
-    console.log('Opening chat with traveler');
-    router.push('/chat/traveler-1');
+    console.log('Opening chat with traveler:', traveler.id);
+    router.push(`/chat/${traveler.id}`);
   };
 
   return (
@@ -156,6 +204,15 @@ export default function TravelerDetailsScreen() {
               <Text style={styles.reviewsText}>({traveler.reviews} reviews)</Text>
             </View>
             <Text style={styles.memberSince}>Member since {traveler.joinedDate}</Text>
+            <View style={styles.responseTimeContainer}>
+              <IconSymbol 
+                ios_icon_name="clock" 
+                android_material_icon_name="schedule" 
+                size={14} 
+                color={colors.success} 
+              />
+              <Text style={styles.responseTimeText}>Usually responds in {traveler.responseTime}</Text>
+            </View>
           </View>
         </View>
 
@@ -205,8 +262,8 @@ export default function TravelerDetailsScreen() {
               <View style={styles.routeLine} />
               <View style={styles.locationRow}>
                 <IconSymbol 
-                  ios_icon_name="airplane.arrival" 
-                  android_material_icon_name="flight-land" 
+                  ios_icon_name="location.fill" 
+                  android_material_icon_name="place" 
                   size={20} 
                   color={colors.primary} 
                 />
@@ -215,6 +272,23 @@ export default function TravelerDetailsScreen() {
                   <Text style={styles.locationText}>{traveler.to}</Text>
                 </View>
               </View>
+              {traveler.finalDestination !== traveler.to && (
+                <>
+                  <View style={styles.routeLine} />
+                  <View style={styles.locationRow}>
+                    <IconSymbol 
+                      ios_icon_name="airplane.arrival" 
+                      android_material_icon_name="flight-land" 
+                      size={20} 
+                      color={colors.accent} 
+                    />
+                    <View style={styles.locationInfo}>
+                      <Text style={styles.locationLabel}>Final Destination</Text>
+                      <Text style={styles.locationText}>{traveler.finalDestination}</Text>
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
 
             {/* Details Grid */}
@@ -271,6 +345,42 @@ export default function TravelerDetailsScreen() {
           </View>
         </View>
 
+        {/* Preferences */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>What I Can Carry</Text>
+          <View style={styles.card}>
+            {traveler.preferences.map((pref, index) => (
+              <View key={index} style={styles.preferenceItem}>
+                <IconSymbol 
+                  ios_icon_name="checkmark.circle.fill" 
+                  android_material_icon_name="check-circle" 
+                  size={18} 
+                  color={colors.success} 
+                />
+                <Text style={styles.preferenceText}>{pref}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Restrictions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Restrictions</Text>
+          <View style={styles.card}>
+            {traveler.restrictions.map((restriction, index) => (
+              <View key={index} style={styles.restrictionItem}>
+                <IconSymbol 
+                  ios_icon_name="xmark.circle.fill" 
+                  android_material_icon_name="cancel" 
+                  size={18} 
+                  color={colors.error} 
+                />
+                <Text style={styles.restrictionText}>{restriction}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
         {/* Meeting Points */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Meeting Points</Text>
@@ -322,7 +432,17 @@ export default function TravelerDetailsScreen() {
                     color={colors.textSecondary} 
                   />
                   <View style={styles.reviewInfo}>
-                    <Text style={styles.reviewUser}>{review.user}</Text>
+                    <View style={styles.reviewUserRow}>
+                      <Text style={styles.reviewUser}>{review.user}</Text>
+                      {review.verified && (
+                        <IconSymbol 
+                          ios_icon_name="checkmark.seal.fill" 
+                          android_material_icon_name="verified" 
+                          size={14} 
+                          color={colors.secondary} 
+                        />
+                      )}
+                    </View>
                     <View style={styles.reviewRating}>
                       {[...Array(review.rating)].map((_, i) => (
                         <IconSymbol 
@@ -448,6 +568,9 @@ export default function TravelerDetailsScreen() {
                   onChangeText={setItemWeight}
                   keyboardType="decimal-pad"
                 />
+                <Text style={styles.helperText}>
+                  Maximum weight: 3 kg
+                </Text>
               </View>
 
               <View style={styles.formGroup}>
@@ -579,6 +702,21 @@ const styles = StyleSheet.create({
   memberSince: {
     fontSize: 13,
     color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  responseTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.highlight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  responseTimeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.text,
   },
   statsCard: {
     flexDirection: 'row',
@@ -696,6 +834,28 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 22,
   },
+  preferenceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  preferenceText: {
+    fontSize: 15,
+    color: colors.text,
+    flex: 1,
+  },
+  restrictionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  restrictionText: {
+    fontSize: 15,
+    color: colors.text,
+    flex: 1,
+  },
   meetingPoint: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -736,11 +896,16 @@ const styles = StyleSheet.create({
   reviewInfo: {
     flex: 1,
   },
+  reviewUserRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
   reviewUser: {
     fontSize: 15,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
   },
   reviewRating: {
     flexDirection: 'row',
