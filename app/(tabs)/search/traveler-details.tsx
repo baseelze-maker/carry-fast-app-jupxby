@@ -114,13 +114,13 @@ export default function TravelerDetailsScreen() {
     // Close modal
     setShowRequestModal(false);
 
-    // Show success message with payment info
+    // Show success message
     Alert.alert(
       'Request Sent Successfully',
-      `Your request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nItem: ${itemDescription}\nWeight: ${itemWeight} kg\n\nNext Step: Pay a $5 communication fee to unlock messaging with ${traveler.name}. This allows you to discuss pickup details and arrange payment for the carrying service.`,
+      `Your request has been sent to ${traveler.name} with an offer of $${offerAmount}.\n\nItem: ${itemDescription}\nWeight: ${itemWeight} kg\n\nNext Steps:\n\n1. Wait for ${traveler.name} to accept your request (Primary Acceptance)\n\n2. Once accepted, pay $5 communication fee to unlock messaging\n\n3. Coordinate pickup details via messages\n\n4. Pay ${traveler.name} the carrying service fee (cash or card)`,
       [
         {
-          text: 'Pay Communication Fee',
+          text: 'OK',
           onPress: () => {
             console.log('Request sent:', {
               traveler: traveler.name,
@@ -130,25 +130,6 @@ export default function TravelerDetailsScreen() {
               offer: offerAmount,
               message: requestMessage,
             });
-            // Reset form
-            setItemDescription('');
-            setItemWeight('');
-            setOfferAmount('');
-            setRequestMessage('');
-            // Navigate to app payment
-            router.push({
-              pathname: '/app-payment',
-              params: {
-                travelerName: traveler.name,
-                requestId: traveler.id,
-              },
-            });
-          },
-        },
-        {
-          text: 'Later',
-          style: 'cancel',
-          onPress: () => {
             // Reset form
             setItemDescription('');
             setItemWeight('');
@@ -168,12 +149,12 @@ export default function TravelerDetailsScreen() {
     if (!hasPaid) {
       Alert.alert(
         'Communication Fee Required',
-        `To message ${traveler.name}, you need to pay a one-time $5 communication fee to the app.\n\nThis unlocks:\n• Direct messaging\n• Pickup coordination\n• Payment arrangement for carrying service\n\nNote: The carrying service payment to the traveler is separate.`,
+        `To message ${traveler.name}, you need to pay a one-time $5 communication fee to the app.\n\nThis fee unlocks:\n• Direct messaging with ${traveler.name}\n• Pickup coordination\n• Payment arrangement for carrying service\n\nImportant: The $5 fee is paid to the app for communication access. The carrying service payment to ${traveler.name} is separate and will be arranged directly.`,
         [
           {
-            text: 'Pay $5 Fee',
+            text: 'Pay $5 Communication Fee',
             onPress: () => {
-              console.log('Navigating to payment for traveler:', traveler.id);
+              console.log('Navigating to app payment for traveler:', traveler.id);
               router.push({
                 pathname: '/app-payment',
                 params: {
@@ -282,7 +263,25 @@ export default function TravelerDetailsScreen() {
             <View style={styles.paymentBannerContent}>
               <Text style={styles.paymentBannerTitle}>Messaging Locked</Text>
               <Text style={styles.paymentBannerText}>
-                Pay $5 communication fee to unlock messaging with this traveler
+                Send a request first. Once the traveler accepts, pay $5 communication fee to unlock messaging.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Payment Status Banner - Show if paid */}
+        {hasPaid && (
+          <View style={styles.paymentBannerSuccess}>
+            <IconSymbol 
+              ios_icon_name="checkmark.seal.fill" 
+              android_material_icon_name="verified" 
+              size={20} 
+              color={colors.success} 
+            />
+            <View style={styles.paymentBannerContent}>
+              <Text style={styles.paymentBannerTitleSuccess}>Messaging Unlocked</Text>
+              <Text style={styles.paymentBannerTextSuccess}>
+                You can now message {traveler.name} to coordinate pickup details.
               </Text>
             </View>
           </View>
@@ -561,13 +560,13 @@ export default function TravelerDetailsScreen() {
             ios_icon_name={hasPaid ? "message.fill" : "lock.fill"} 
             android_material_icon_name={hasPaid ? "message" : "lock"} 
             size={20} 
-            color={hasPaid ? colors.text : colors.accent} 
+            color={hasPaid ? colors.primary : colors.accent} 
           />
           <Text style={[
             styles.messageButtonText,
             !hasPaid && styles.messageButtonTextLocked
           ]}>
-            {hasPaid ? 'Message' : 'Message (Pay $5)'}
+            {hasPaid ? 'Message' : 'Locked'}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity 
@@ -619,6 +618,27 @@ export default function TravelerDetailsScreen() {
                 <View style={styles.modalTravelerDetails}>
                   <Text style={styles.modalTravelerName}>{traveler.name}</Text>
                   <Text style={styles.modalTravelerRoute}>{traveler.from} → {traveler.to}</Text>
+                </View>
+              </View>
+
+              {/* Payment Flow Notice */}
+              <View style={styles.flowNotice}>
+                <Text style={styles.flowNoticeTitle}>Payment Flow:</Text>
+                <View style={styles.flowNoticeStep}>
+                  <Text style={styles.flowNoticeStepNumber}>1.</Text>
+                  <Text style={styles.flowNoticeStepText}>Traveler accepts your request</Text>
+                </View>
+                <View style={styles.flowNoticeStep}>
+                  <Text style={styles.flowNoticeStepNumber}>2.</Text>
+                  <Text style={styles.flowNoticeStepText}>Pay $5 communication fee to app</Text>
+                </View>
+                <View style={styles.flowNoticeStep}>
+                  <Text style={styles.flowNoticeStepNumber}>3.</Text>
+                  <Text style={styles.flowNoticeStepText}>Message traveler to coordinate</Text>
+                </View>
+                <View style={styles.flowNoticeStep}>
+                  <Text style={styles.flowNoticeStepNumber}>4.</Text>
+                  <Text style={styles.flowNoticeStepText}>Pay traveler carrying service fee</Text>
                 </View>
               </View>
 
@@ -821,6 +841,18 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderRadius: 8,
   },
+  paymentBannerSuccess: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: `${colors.success}20`,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.success,
+    padding: 16,
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 8,
+  },
   paymentBannerContent: {
     flex: 1,
   },
@@ -830,9 +862,20 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 4,
   },
+  paymentBannerTitleSuccess: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.success,
+    marginBottom: 4,
+  },
   paymentBannerText: {
     fontSize: 13,
     color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  paymentBannerTextSuccess: {
+    fontSize: 13,
+    color: colors.text,
     lineHeight: 18,
   },
   statsCard: {
@@ -1075,23 +1118,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: colors.background,
+    backgroundColor: colors.highlight,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.primary,
   },
   messageButtonLocked: {
-    backgroundColor: `${colors.accent}15`,
-    borderColor: colors.accent,
+    backgroundColor: colors.background,
+    borderColor: colors.border,
   },
   messageButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text,
+    color: colors.primary,
   },
   messageButtonTextLocked: {
-    color: colors.accent,
+    color: colors.textSecondary,
   },
   requestButton: {
     flex: 2,
@@ -1160,6 +1203,38 @@ const styles = StyleSheet.create({
   modalTravelerRoute: {
     fontSize: 13,
     color: colors.textSecondary,
+  },
+  flowNotice: {
+    backgroundColor: `${colors.secondary}15`,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: `${colors.secondary}30`,
+  },
+  flowNoticeTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  flowNoticeStep: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 8,
+  },
+  flowNoticeStepNumber: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.secondary,
+    width: 20,
+  },
+  flowNoticeStepText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.text,
+    lineHeight: 18,
   },
   priceNotice: {
     flexDirection: 'row',
