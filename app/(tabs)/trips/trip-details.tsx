@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert, Modal } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert, Modal, TextInput } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
@@ -85,29 +85,29 @@ export default function TripDetailsScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     
     Alert.alert(
-      'Accept Request',
-      `Accept ${request.requester.name}'s request for $${request.counterOffer || request.offeredAmount}?\n\nThe requester will be notified to pay the carrying service fee.`,
+      'Primary Acceptance',
+      `Accept ${request.requester.name}'s request for $${request.counterOffer || request.offeredAmount}?\n\nThis is a primary acceptance. ${request.requester.name} will be notified and can then:\n\n1. Pay $5 communication fee to the app\n2. Message you to coordinate pickup\n3. Pay you $${request.counterOffer || request.offeredAmount} for carrying service (cash or card)`,
       [
         {
           text: 'Cancel',
           style: 'cancel',
         },
         {
-          text: 'Accept',
+          text: 'Accept Request',
           onPress: () => {
-            console.log('Accepting request:', request.id);
-            // Update request status
+            console.log('Accepting request (Primary Acceptance):', request.id);
+            // Update request status to 'primary_accepted'
             setTrip(prevTrip => ({
               ...prevTrip,
               requests: prevTrip.requests.map(r =>
-                r.id === request.id ? { ...r, status: 'accepted' } : r
+                r.id === request.id ? { ...r, status: 'primary_accepted' } : r
               ),
               availableWeight: prevTrip.availableWeight - request.weight,
             }));
             
             Alert.alert(
               'Request Accepted!',
-              `${request.requester.name} has been notified to pay $${request.counterOffer || request.offeredAmount} for the carrying service.\n\nThey can choose to pay by card now or arrange cash payment at pickup.\n\nYou can now message them to coordinate pickup details.`,
+              `✓ Primary acceptance sent to ${request.requester.name}\n\n${request.requester.name} will now:\n\n1. Pay $5 communication fee to unlock messaging\n2. Coordinate pickup details with you via messages\n3. Pay $${request.counterOffer || request.offeredAmount} carrying service fee (cash or card)\n\nYou'll be notified when they pay the communication fee and messaging is unlocked.`,
               [{ text: 'OK' }]
             );
           },
@@ -178,7 +178,7 @@ export default function TripDetailsScreen() {
     
     Alert.alert(
       'Counter Offer Sent!',
-      `Your counter offer of $${counterOfferAmount} has been sent to ${selectedRequest.requester.name}.`,
+      `Your counter offer of $${counterOfferAmount} has been sent to ${selectedRequest.requester.name}.\n\nThey can accept your counter offer or negotiate further.`,
       [{ text: 'OK' }]
     );
   };
@@ -189,14 +189,27 @@ export default function TripDetailsScreen() {
     // In a real app, navigate to requester profile
   };
 
-  const handleContactRequester = (requester: any) => {
+  const handleContactRequester = (request: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log('Contacting requester:', requester.name);
-    router.push(`/chat/${requester.name}`);
+    console.log('Contacting requester:', request.requester.name);
+    
+    // Check if request is in primary_accepted status
+    if (request.status === 'primary_accepted') {
+      Alert.alert(
+        'Messaging Not Yet Available',
+        `${request.requester.name} needs to pay the $5 communication fee to the app before messaging is enabled.\n\nThey have been notified of your acceptance and will be prompted to pay the fee to unlock messaging.`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    // If status is 'paid' or 'accepted', allow messaging
+    router.push(`/chat/${request.id}`);
   };
 
   const pendingRequests = trip.requests.filter(r => r.status === 'pending');
-  const acceptedRequests = trip.requests.filter(r => r.status === 'accepted');
+  const primaryAcceptedRequests = trip.requests.filter(r => r.status === 'primary_accepted');
+  const acceptedRequests = trip.requests.filter(r => r.status === 'accepted' || r.status === 'paid');
 
   return (
     <View style={styles.container}>
@@ -473,20 +486,127 @@ export default function TripDetailsScreen() {
                       <Text style={styles.declineButtonText}>Decline</Text>
                     </TouchableOpacity>
                   </View>
+                </View>
+              </React.Fragment>
+            ))}
+          </View>
+        )}
 
-                  {/* Contact Button */}
+        {/* Primary Accepted Requests Section */}
+        {primaryAcceptedRequests.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Awaiting Payment</Text>
+              <View style={[styles.countBadge, styles.countBadgeWarning]}>
+                <Text style={styles.countBadgeText}>{primaryAcceptedRequests.length}</Text>
+              </View>
+            </View>
+
+            {primaryAcceptedRequests.map((request, index) => (
+              <React.Fragment key={index}>
+                <View style={[styles.requestCard, styles.primaryAcceptedCard]}>
+                  <View style={styles.primaryAcceptedBadge}>
+                    <IconSymbol 
+                      ios_icon_name="hourglass" 
+                      android_material_icon_name="hourglass-empty" 
+                      size={16} 
+                      color={colors.warning} 
+                    />
+                    <Text style={styles.primaryAcceptedBadgeText}>Primary Acceptance Sent</Text>
+                  </View>
+
+                  <View style={styles.requesterHeader}>
+                    <IconSymbol 
+                      ios_icon_name="person.circle.fill" 
+                      android_material_icon_name="account-circle" 
+                      size={40} 
+                      color={colors.primary} 
+                    />
+                    <View style={styles.requesterInfo}>
+                      <Text style={styles.requesterName}>{request.requester.name}</Text>
+                      <Text style={styles.itemText}>{request.itemDescription}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.paymentFlowCard}>
+                    <Text style={styles.paymentFlowTitle}>Next Steps for {request.requester.name}:</Text>
+                    
+                    <View style={styles.paymentFlowStep}>
+                      <View style={styles.paymentFlowStepNumber}>
+                        <Text style={styles.paymentFlowStepNumberText}>1</Text>
+                      </View>
+                      <View style={styles.paymentFlowStepContent}>
+                        <Text style={styles.paymentFlowStepTitle}>Pay Communication Fee</Text>
+                        <Text style={styles.paymentFlowStepText}>$5 to app → Unlocks messaging</Text>
+                      </View>
+                      <IconSymbol 
+                        ios_icon_name="hourglass" 
+                        android_material_icon_name="hourglass-empty" 
+                        size={20} 
+                        color={colors.warning} 
+                      />
+                    </View>
+
+                    <View style={styles.paymentFlowDivider} />
+
+                    <View style={styles.paymentFlowStep}>
+                      <View style={[styles.paymentFlowStepNumber, styles.paymentFlowStepNumberInactive]}>
+                        <Text style={styles.paymentFlowStepNumberText}>2</Text>
+                      </View>
+                      <View style={styles.paymentFlowStepContent}>
+                        <Text style={styles.paymentFlowStepTitle}>Message & Coordinate</Text>
+                        <Text style={styles.paymentFlowStepText}>Discuss pickup details</Text>
+                      </View>
+                      <IconSymbol 
+                        ios_icon_name="lock.fill" 
+                        android_material_icon_name="lock" 
+                        size={20} 
+                        color={colors.textSecondary} 
+                      />
+                    </View>
+
+                    <View style={styles.paymentFlowDivider} />
+
+                    <View style={styles.paymentFlowStep}>
+                      <View style={[styles.paymentFlowStepNumber, styles.paymentFlowStepNumberInactive]}>
+                        <Text style={styles.paymentFlowStepNumberText}>3</Text>
+                      </View>
+                      <View style={styles.paymentFlowStepContent}>
+                        <Text style={styles.paymentFlowStepTitle}>Pay Carrying Service Fee</Text>
+                        <Text style={styles.paymentFlowStepText}>
+                          ${request.counterOffer || request.offeredAmount} to you (cash or card)
+                        </Text>
+                      </View>
+                      <IconSymbol 
+                        ios_icon_name="lock.fill" 
+                        android_material_icon_name="lock" 
+                        size={20} 
+                        color={colors.textSecondary} 
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.acceptedAmount}>
+                    <Text style={styles.acceptedAmountLabel}>Carrying Service Fee</Text>
+                    <Text style={styles.acceptedAmountValue}>
+                      ${request.counterOffer || request.offeredAmount}
+                    </Text>
+                  </View>
+
                   <TouchableOpacity 
-                    style={styles.contactButton}
-                    onPress={() => handleContactRequester(request.requester)}
+                    style={[styles.contactButton, styles.contactButtonDisabled]}
+                    onPress={() => handleContactRequester(request)}
                     activeOpacity={0.7}
                   >
                     <IconSymbol 
-                      ios_icon_name="message.fill" 
-                      android_material_icon_name="message" 
+                      ios_icon_name="lock.fill" 
+                      android_material_icon_name="lock" 
                       size={16} 
-                      color={colors.primary} 
+                      color={colors.textSecondary} 
                     />
-                    <Text style={styles.contactButtonText}>Message {request.requester.name}</Text>
+                    <Text style={styles.contactButtonTextDisabled}>
+                      Messaging Locked (Awaiting Payment)
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </React.Fragment>
@@ -498,7 +618,7 @@ export default function TripDetailsScreen() {
         {acceptedRequests.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Accepted Requests</Text>
+              <Text style={styles.sectionTitle}>Active Requests</Text>
               <View style={[styles.countBadge, styles.countBadgeSuccess]}>
                 <Text style={styles.countBadgeText}>{acceptedRequests.length}</Text>
               </View>
@@ -514,7 +634,7 @@ export default function TripDetailsScreen() {
                       size={16} 
                       color={colors.success} 
                     />
-                    <Text style={styles.acceptedBadgeText}>Accepted - Awaiting Payment</Text>
+                    <Text style={styles.acceptedBadgeText}>Communication Fee Paid - Messaging Active</Text>
                   </View>
 
                   <View style={styles.requesterHeader}>
@@ -531,15 +651,18 @@ export default function TripDetailsScreen() {
                   </View>
 
                   <View style={styles.acceptedAmount}>
-                    <Text style={styles.acceptedAmountLabel}>Amount</Text>
+                    <Text style={styles.acceptedAmountLabel}>Carrying Service Fee</Text>
                     <Text style={styles.acceptedAmountValue}>
                       ${request.counterOffer || request.offeredAmount}
+                    </Text>
+                    <Text style={styles.acceptedAmountNote}>
+                      To be paid by requester (cash or card)
                     </Text>
                   </View>
 
                   <TouchableOpacity 
                     style={styles.contactButton}
-                    onPress={() => handleContactRequester(request.requester)}
+                    onPress={() => handleContactRequester(request)}
                     activeOpacity={0.7}
                   >
                     <IconSymbol 
@@ -557,7 +680,7 @@ export default function TripDetailsScreen() {
         )}
 
         {/* Empty State */}
-        {pendingRequests.length === 0 && acceptedRequests.length === 0 && (
+        {pendingRequests.length === 0 && primaryAcceptedRequests.length === 0 && acceptedRequests.length === 0 && (
           <View style={styles.emptyState}>
             <IconSymbol 
               ios_icon_name="tray" 
@@ -778,6 +901,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
+  countBadgeWarning: {
+    backgroundColor: colors.warning,
+  },
   countBadgeSuccess: {
     backgroundColor: colors.success,
   },
@@ -794,9 +920,29 @@ const styles = StyleSheet.create({
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
     elevation: 2,
   },
+  primaryAcceptedCard: {
+    borderWidth: 2,
+    borderColor: colors.warning,
+  },
   acceptedCard: {
     borderWidth: 2,
     borderColor: colors.success,
+  },
+  primaryAcceptedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: `${colors.warning}15`,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+  },
+  primaryAcceptedBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.warning,
   },
   acceptedBadge: {
     flexDirection: 'row',
@@ -981,6 +1127,59 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.error,
   },
+  paymentFlowCard: {
+    backgroundColor: colors.highlight,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  paymentFlowTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  paymentFlowStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  paymentFlowStepNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.warning,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  paymentFlowStepNumberInactive: {
+    backgroundColor: colors.textSecondary,
+    opacity: 0.5,
+  },
+  paymentFlowStepNumberText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  paymentFlowStepContent: {
+    flex: 1,
+  },
+  paymentFlowStepTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  paymentFlowStepText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    lineHeight: 14,
+  },
+  paymentFlowDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: 12,
+  },
   contactButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -990,10 +1189,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
   },
+  contactButtonDisabled: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   contactButtonText: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.primary,
+  },
+  contactButtonTextDisabled: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   acceptedAmount: {
     backgroundColor: colors.highlight,
@@ -1011,6 +1220,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: colors.success,
+  },
+  acceptedAmountNote: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 4,
+    textAlign: 'center',
   },
   emptyState: {
     alignItems: 'center',

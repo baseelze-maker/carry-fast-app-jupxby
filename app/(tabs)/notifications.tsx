@@ -9,46 +9,59 @@ import { colors } from "@/styles/commonStyles";
 const initialNotifications = [
   {
     id: '1',
+    type: 'primary_acceptance',
+    title: 'Request Accepted!',
+    message: 'Sarah Johnson accepted your carry request! Pay $5 communication fee to unlock messaging and coordinate pickup details.',
+    sender: 'Sarah Johnson',
+    amount: '$25',
+    time: '30s ago',
+    read: false,
+    icon: 'checkmark.seal.fill',
+    iconAndroid: 'verified',
+    iconColor: colors.success,
+  },
+  {
+    id: '2',
     type: 'app_payment_required',
     title: 'Communication Fee Required',
     message: 'Pay $5 communication fee to unlock messaging with Sarah Johnson and discuss your carry request',
     sender: 'Sarah Johnson',
     amount: '$5',
-    time: '30s ago',
+    time: '1m ago',
     read: false,
     icon: 'message.badge.fill',
     iconAndroid: 'message',
     iconColor: colors.secondary,
   },
   {
-    id: '2',
+    id: '3',
     type: 'counter_offer',
     title: 'Counter Offer Received',
     message: 'Sarah Johnson sent a counter offer of $35 for your carry request',
     sender: 'Sarah Johnson',
     originalAmount: '$25',
     counterAmount: '$35',
-    time: '1m ago',
+    time: '2m ago',
     read: false,
     icon: 'arrow.left.arrow.right',
     iconAndroid: 'swap-horiz',
     iconColor: colors.warning,
   },
   {
-    id: '3',
+    id: '4',
     type: 'traveler_payment_request',
     title: 'Pay Traveler',
     message: 'Your request was accepted! Pay $25 to Sarah Johnson for the carrying service (card or cash)',
     sender: 'Sarah Johnson',
     amount: '$25',
-    time: '2m ago',
+    time: '5m ago',
     read: false,
     icon: 'creditcard.fill',
     iconAndroid: 'payment',
     iconColor: colors.primary,
   },
   {
-    id: '4',
+    id: '5',
     type: 'offer_accepted',
     title: 'Offer Accepted',
     message: 'Mike Chen accepted your offer of $30. Please proceed with payment.',
@@ -61,19 +74,19 @@ const initialNotifications = [
     iconColor: colors.success,
   },
   {
-    id: '5',
+    id: '6',
     type: 'request',
     title: 'New Carry Request',
     message: 'Mike Chen wants you to carry an item on your trip to London. Offered amount: $25',
     offeredAmount: '$25',
-    time: '5m ago',
+    time: '20m ago',
     read: false,
     icon: 'shippingbox',
     iconAndroid: 'inventory',
     iconColor: colors.secondary,
   },
   {
-    id: '6',
+    id: '7',
     type: 'message',
     title: 'New Message',
     message: 'Sarah Johnson: "Sure, I can carry that for you!"',
@@ -84,7 +97,7 @@ const initialNotifications = [
     iconColor: colors.primary,
   },
   {
-    id: '7',
+    id: '8',
     type: 'accepted',
     title: 'Request Accepted',
     message: 'Emma Wilson accepted your carry request for $30',
@@ -96,7 +109,7 @@ const initialNotifications = [
     iconColor: colors.success,
   },
   {
-    id: '8',
+    id: '9',
     type: 'traveler_payment_request',
     title: 'Pay Traveler',
     message: 'David Lee accepted your request. Pay $20 for the carrying service.',
@@ -109,7 +122,7 @@ const initialNotifications = [
     iconColor: colors.primary,
   },
   {
-    id: '9',
+    id: '10',
     type: 'review',
     title: 'New Review',
     message: 'David Lee left you a 5-star review',
@@ -120,7 +133,7 @@ const initialNotifications = [
     iconColor: colors.accent,
   },
   {
-    id: '10',
+    id: '11',
     type: 'reminder',
     title: 'Trip Reminder',
     message: 'Your trip to Paris is tomorrow at 10:00 AM. Remember to collect items from requesters at pickup and hand them over to our Centre representative at the destination.',
@@ -131,7 +144,7 @@ const initialNotifications = [
     iconColor: colors.warning,
   },
   {
-    id: '11',
+    id: '12',
     type: 'completed',
     title: 'Handover Completed',
     message: 'Your item was successfully handed over to our Centre representative by John Smith',
@@ -164,7 +177,17 @@ export default function NotificationsScreen() {
     );
 
     // Navigate based on notification type
-    if (notification.type === 'app_payment_required') {
+    if (notification.type === 'primary_acceptance') {
+      // Navigate to app payment screen (communication fee)
+      console.log('Opening app payment screen after primary acceptance');
+      router.push({
+        pathname: '/app-payment',
+        params: {
+          travelerName: notification.sender,
+          requestId: notification.id,
+        },
+      });
+    } else if (notification.type === 'app_payment_required') {
       // Navigate to app payment screen (communication fee)
       console.log('Opening app payment screen for:', notification.amount);
       router.push({
@@ -239,6 +262,18 @@ export default function NotificationsScreen() {
                   <Text style={styles.notificationMessage} numberOfLines={2}>
                     {notification.message}
                   </Text>
+                  {notification.type === 'primary_acceptance' && notification.amount && (
+                    <View style={styles.primaryAcceptanceBadge}>
+                      <IconSymbol 
+                        ios_icon_name="checkmark.seal.fill" 
+                        android_material_icon_name="verified" 
+                        size={14} 
+                        color={colors.success} 
+                      />
+                      <Text style={styles.primaryAcceptanceAmount}>{notification.amount}</Text>
+                      <Text style={styles.primaryAcceptanceAction}>• Pay $5 to message</Text>
+                    </View>
+                  )}
                   {notification.type === 'app_payment_required' && notification.amount && (
                     <View style={styles.appPaymentBadge}>
                       <IconSymbol 
@@ -402,6 +437,29 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 20,
     marginBottom: 6,
+  },
+  primaryAcceptanceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: `${colors.success}15`,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: `${colors.success}40`,
+  },
+  primaryAcceptanceAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.success,
+  },
+  primaryAcceptanceAction: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   appPaymentBadge: {
     flexDirection: 'row',
