@@ -62,6 +62,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Notifications',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol
+              ios_icon_name="bell.fill"
+              android_material_icon_name="notifications"
+              color={color}
+              size={24}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="messages"
         options={{
           title: 'Messages',
@@ -97,12 +111,6 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="trips/trip-details"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="notifications"
         options={{
           href: null,
         }}
