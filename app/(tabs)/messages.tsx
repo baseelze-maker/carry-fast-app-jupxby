@@ -1,4 +1,4 @@
-
+1,I
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from "react-native";
 import { IconSymbol } from "@/components/IconSymbol";
