@@ -6,8 +6,8 @@ import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-// Mock data for travelers
-const mockTravelers = [
+// Mock data for carriers
+const mockCarriers = [
   {
     id: '1',
     name: 'John Smith',
@@ -135,51 +135,51 @@ export default function SearchScreen() {
     return count;
   };
 
-  // Filter and sort travelers
-  const getFilteredTravelers = () => {
-    let filtered = mockTravelers.filter(traveler => {
+  // Filter and sort carriers
+  const getFilteredCarriers = () => {
+    let filtered = mockCarriers.filter(carrier => {
       // Search query filter
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = 
-        traveler.to.toLowerCase().includes(searchLower) ||
-        traveler.finalDestination.toLowerCase().includes(searchLower) ||
-        traveler.from.toLowerCase().includes(searchLower) ||
-        traveler.name.toLowerCase().includes(searchLower);
+        carrier.to.toLowerCase().includes(searchLower) ||
+        carrier.finalDestination.toLowerCase().includes(searchLower) ||
+        carrier.from.toLowerCase().includes(searchLower) ||
+        carrier.name.toLowerCase().includes(searchLower);
       
       if (!matchesSearch) return false;
 
       // Date filter
       if (selectedDate) {
-        const travelerDate = new Date(traveler.date);
-        if (travelerDate.toDateString() !== selectedDate.toDateString()) {
+        const carrierDate = new Date(carrier.date);
+        if (carrierDate.toDateString() !== selectedDate.toDateString()) {
           return false;
         }
       }
 
       // Weight filter
-      if (minWeight && traveler.weight < parseFloat(minWeight)) {
+      if (minWeight && carrier.weight < parseFloat(minWeight)) {
         return false;
       }
 
       // Price filter
-      if (maxPrice && traveler.price > parseFloat(maxPrice)) {
+      if (maxPrice && carrier.price > parseFloat(maxPrice)) {
         return false;
       }
 
       // Rating filter
-      if (minRating > 0 && traveler.rating < minRating) {
+      if (minRating > 0 && carrier.rating < minRating) {
         return false;
       }
 
       // Verified filter
-      if (verifiedOnly && !traveler.verified) {
+      if (verifiedOnly && !carrier.verified) {
         return false;
       }
 
       return true;
     });
 
-    // Sort travelers
+    // Sort carriers
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'date':
@@ -200,14 +200,14 @@ export default function SearchScreen() {
     return filtered;
   };
 
-  const filteredTravelers = getFilteredTravelers();
+  const filteredCarriers = getFilteredCarriers();
   const activeFilterCount = getActiveFilterCount();
 
-  const handleTravelerPress = (travelerId: string) => {
-    console.log('Opening traveler details for:', travelerId);
+  const handleCarrierPress = (carrierId: string) => {
+    console.log('Opening carrier details for:', carrierId);
     router.push({
       pathname: '/search/traveler-details',
-      params: { travelerId }
+      params: { travelerId: carrierId }
     });
   };
 
@@ -215,7 +215,7 @@ export default function SearchScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Search Travelers</Text>
+        <Text style={styles.headerTitle}>Search Carriers</Text>
         <Text style={styles.headerSubtitle}>Find someone traveling to your destination</Text>
       </View>
 
@@ -319,10 +319,10 @@ export default function SearchScreen() {
         {/* Results */}
         <View style={styles.resultsSection}>
           <Text style={styles.resultsTitle}>
-            {filteredTravelers.length} {filteredTravelers.length === 1 ? 'Traveler' : 'Travelers'} Found
+            {filteredCarriers.length} {filteredCarriers.length === 1 ? 'Carrier' : 'Carriers'} Found
           </Text>
 
-          {filteredTravelers.length === 0 ? (
+          {filteredCarriers.length === 0 ? (
             <View style={styles.emptyState}>
               <IconSymbol 
                 ios_icon_name="magnifyingglass" 
@@ -330,7 +330,7 @@ export default function SearchScreen() {
                 size={64} 
                 color={colors.textSecondary} 
               />
-              <Text style={styles.emptyStateTitle}>No travelers found</Text>
+              <Text style={styles.emptyStateTitle}>No carriers found</Text>
               <Text style={styles.emptyStateText}>
                 Try adjusting your search or filters to find more results
               </Text>
@@ -344,15 +344,15 @@ export default function SearchScreen() {
               )}
             </View>
           ) : (
-            filteredTravelers.map((traveler, index) => (
+            filteredCarriers.map((carrier, index) => (
               <React.Fragment key={index}>
                 <TouchableOpacity 
-                  style={styles.travelerCard}
+                  style={styles.carrierCard}
                   activeOpacity={0.7}
-                  onPress={() => handleTravelerPress(traveler.id)}
+                  onPress={() => handleCarrierPress(carrier.id)}
                 >
-                  {/* Traveler Header */}
-                  <View style={styles.travelerHeader}>
+                  {/* Carrier Header */}
+                  <View style={styles.carrierHeader}>
                     <View style={styles.avatarContainer}>
                       <IconSymbol 
                         ios_icon_name="person.circle.fill" 
@@ -361,10 +361,10 @@ export default function SearchScreen() {
                         color={colors.primary} 
                       />
                     </View>
-                    <View style={styles.travelerInfo}>
+                    <View style={styles.carrierInfo}>
                       <View style={styles.nameRow}>
-                        <Text style={styles.travelerName}>{traveler.name}</Text>
-                        {traveler.verified && (
+                        <Text style={styles.carrierName}>{carrier.name}</Text>
+                        {carrier.verified && (
                           <IconSymbol 
                             ios_icon_name="checkmark.seal.fill" 
                             android_material_icon_name="verified" 
@@ -380,13 +380,13 @@ export default function SearchScreen() {
                           size={14} 
                           color={colors.accent} 
                         />
-                        <Text style={styles.ratingText}>{traveler.rating}</Text>
-                        <Text style={styles.tripsText}>• {traveler.completedTrips} trips</Text>
+                        <Text style={styles.ratingText}>{carrier.rating}</Text>
+                        <Text style={styles.tripsText}>• {carrier.completedTrips} trips</Text>
                       </View>
                     </View>
                     <View style={styles.priceContainer}>
                       <Text style={styles.priceLabel}>Fee</Text>
-                      <Text style={styles.priceText}>${traveler.price}</Text>
+                      <Text style={styles.priceText}>${carrier.price}</Text>
                     </View>
                   </View>
 
@@ -400,7 +400,7 @@ export default function SearchScreen() {
                           size={16} 
                           color={colors.secondary} 
                         />
-                        <Text style={styles.locationText}>{traveler.from}</Text>
+                        <Text style={styles.locationText}>{carrier.from}</Text>
                       </View>
                       <View style={styles.routeLine} />
                       <View style={styles.locationRow}>
@@ -411,15 +411,15 @@ export default function SearchScreen() {
                           color={colors.primary} 
                         />
                         <View style={styles.destinationInfo}>
-                          <Text style={styles.locationText}>{traveler.to}</Text>
-                          {traveler.canDeliverAtFirstDestination && (
+                          <Text style={styles.locationText}>{carrier.to}</Text>
+                          {carrier.canDeliverAtFirstDestination && (
                             <View style={styles.deliveryBadge}>
                               <Text style={styles.deliveryBadgeText}>Can deliver here</Text>
                             </View>
                           )}
                         </View>
                       </View>
-                      {traveler.finalDestination !== traveler.to && (
+                      {carrier.finalDestination !== carrier.to && (
                         <>
                           <View style={styles.routeLine} />
                           <View style={styles.locationRow}>
@@ -430,7 +430,7 @@ export default function SearchScreen() {
                               color={colors.accent} 
                             />
                             <View style={styles.destinationInfo}>
-                              <Text style={styles.locationText}>{traveler.finalDestination}</Text>
+                              <Text style={styles.locationText}>{carrier.finalDestination}</Text>
                               <Text style={styles.finalDestLabel}>(Final destination)</Text>
                             </View>
                           </View>
@@ -446,7 +446,7 @@ export default function SearchScreen() {
                           size={14} 
                           color={colors.textSecondary} 
                         />
-                        <Text style={styles.detailText}>{traveler.date}</Text>
+                        <Text style={styles.detailText}>{carrier.date}</Text>
                       </View>
                       <View style={styles.detailItem}>
                         <IconSymbol 
@@ -455,7 +455,7 @@ export default function SearchScreen() {
                           size={14} 
                           color={colors.textSecondary} 
                         />
-                        <Text style={styles.detailText}>{traveler.weight} kg available</Text>
+                        <Text style={styles.detailText}>{carrier.weight} kg available</Text>
                       </View>
                     </View>
                   </View>
@@ -464,7 +464,7 @@ export default function SearchScreen() {
                   <TouchableOpacity 
                     style={styles.contactButton} 
                     activeOpacity={0.8}
-                    onPress={() => handleTravelerPress(traveler.id)}
+                    onPress={() => handleCarrierPress(carrier.id)}
                   >
                     <Text style={styles.contactButtonText}>View Details & Send Request</Text>
                     <IconSymbol 
@@ -600,7 +600,7 @@ export default function SearchScreen() {
                       size={20} 
                       color={verifiedOnly ? colors.secondary : colors.textSecondary} 
                     />
-                    <Text style={styles.verifiedToggleText}>Verified travelers only</Text>
+                    <Text style={styles.verifiedToggleText}>Verified carriers only</Text>
                   </View>
                   <View style={[styles.toggleSwitch, verifiedOnly && styles.toggleSwitchActive]}>
                     <View style={[styles.toggleThumb, verifiedOnly && styles.toggleThumbActive]} />
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.card,
   },
-  travelerCard: {
+  carrierCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
     elevation: 2,
   },
-  travelerHeader: {
+  carrierHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
@@ -801,7 +801,7 @@ const styles = StyleSheet.create({
   avatarContainer: {
     marginRight: 12,
   },
-  travelerInfo: {
+  carrierInfo: {
     flex: 1,
   },
   nameRow: {
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 4,
   },
-  travelerName: {
+  carrierName: {
     fontSize: 17,
     fontWeight: '600',
     color: colors.text,

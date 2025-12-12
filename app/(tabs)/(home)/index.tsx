@@ -18,7 +18,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>TravelConnect</Text>
-          <Text style={styles.headerSubtitle}>Connect Travelers & Senders</Text>
+          <Text style={styles.headerSubtitle}>Connect Carriers & Senders</Text>
         </View>
 
         {/* Hero Section */}
@@ -32,7 +32,7 @@ export default function HomeScreen() {
             />
             <Text style={styles.heroTitle}>Welcome to TravelConnect</Text>
             <Text style={styles.heroText}>
-              Connect travelers with people who need to send items. 
+              Connect carriers with people who need to send items. 
               Make the most of your luggage space or send items quickly and affordably.
             </Text>
           </View>
@@ -108,7 +108,7 @@ export default function HomeScreen() {
             <View style={styles.stepContent}>
               <Text style={styles.stepTitle}>Post or Search</Text>
               <Text style={styles.stepDescription}>
-                Travelers post their trips. Senders search for travelers going to their destination.
+                Carriers post their trips. Senders search for carriers going to their destination.
               </Text>
             </View>
           </View>
@@ -132,7 +132,7 @@ export default function HomeScreen() {
             <View style={styles.stepContent}>
               <Text style={styles.stepTitle}>Deliver & Confirm</Text>
               <Text style={styles.stepDescription}>
-                Traveler delivers the item. Both parties confirm successful delivery.
+                Carrier delivers the item. Both parties confirm successful delivery.
               </Text>
             </View>
           </View>
@@ -144,7 +144,7 @@ export default function HomeScreen() {
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>1,234</Text>
-              <Text style={styles.statLabel}>Active Travelers</Text>
+              <Text style={styles.statLabel}>Active Carriers</Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>567</Text>
