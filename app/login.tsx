@@ -46,7 +46,17 @@ export default function LoginScreen() {
       
       if (result.error) {
         console.error('Login failed:', result.error);
-        Alert.alert('Login Failed', result.error);
+        
+        // Provide more helpful error messages
+        let errorMessage = result.error;
+        
+        if (result.error.toLowerCase().includes('invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (result.error.toLowerCase().includes('email not confirmed')) {
+          errorMessage = 'Please verify your email address before signing in. Check your inbox for the verification link.';
+        }
+        
+        Alert.alert('Login Failed', errorMessage);
         setIsLoading(false);
       } else {
         console.log('Login successful');
@@ -82,7 +92,7 @@ export default function LoginScreen() {
               />
             </View>
             <Text style={styles.appTitle}>TravelConnect</Text>
-            <Text style={styles.appSubtitle}>Connect Travelers & Senders</Text>
+            <Text style={styles.appSubtitle}>Connect Carriers & Senders</Text>
           </View>
 
           {/* Login Form */}

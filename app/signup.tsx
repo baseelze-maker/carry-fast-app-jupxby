@@ -60,13 +60,21 @@ export default function SignupScreen() {
       
       if (result.error) {
         console.error('Signup failed:', result.error);
-        Alert.alert('Signup Failed', result.error);
+        
+        // Provide more helpful error messages
+        let errorMessage = result.error;
+        
+        if (result.error.toLowerCase().includes('already registered')) {
+          errorMessage = 'This email is already registered. Please sign in or use a different email.';
+        }
+        
+        Alert.alert('Signup Failed', errorMessage);
         setIsLoading(false);
       } else {
         console.log('Signup successful');
         Alert.alert(
-          'Success!',
-          'Your account has been created. Please check your email to verify your account before signing in.',
+          'Success! 🎉',
+          'Your account has been created successfully!\n\nIMPORTANT: Please check your email inbox and click the verification link to activate your account before signing in.',
           [
             {
               text: 'OK',
@@ -105,7 +113,7 @@ export default function SignupScreen() {
               />
             </View>
             <Text style={styles.appTitle}>TravelConnect</Text>
-            <Text style={styles.appSubtitle}>Connect Travelers & Senders</Text>
+            <Text style={styles.appSubtitle}>Connect Carriers & Senders</Text>
           </View>
 
           {/* Signup Form */}
@@ -242,7 +250,7 @@ export default function SignupScreen() {
                       userType === 'traveler' && styles.userTypeButtonTextActive,
                     ]}
                   >
-                    Traveler
+                    Carrier
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity

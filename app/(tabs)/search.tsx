@@ -216,7 +216,7 @@ export default function SearchScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Search Carriers</Text>
-        <Text style={styles.headerSubtitle}>Find someone traveling to your destination</Text>
+        <Text style={styles.headerSubtitle}>Find carriers traveling to your destination</Text>
       </View>
 
       <ScrollView
