@@ -48,9 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('User signed in:', session.user.email);
         setSession(session);
         await loadUserProfile(session.user.id);
+        // Set authenticated state after profile is loaded
         setIsAuthenticated(true);
         setIsLoading(false);
-        console.log('Auth state updated: isAuthenticated = true');
+        console.log('Auth state updated: isAuthenticated = true, isLoading = false');
       } else if (event === 'SIGNED_OUT') {
         console.log('User signed out');
         setSession(null);
@@ -167,10 +168,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.session && data.user) {
         console.log('Login successful for:', email);
-        console.log('Session established, waiting for onAuthStateChange to update state...');
         // The onAuthStateChange listener will handle setting the state
-        // Wait a bit to ensure the state is updated
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Return success immediately - the listener will update the state
         return {};
       }
 

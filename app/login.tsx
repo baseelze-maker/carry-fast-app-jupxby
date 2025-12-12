@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -22,7 +23,14 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+
+  // If user becomes authenticated, they will be redirected by index.tsx
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      console.log('User authenticated in login screen, navigation will be handled by index.tsx');
+    }
+  }, [isAuthenticated]);
 
   const handleLogin = async () => {
     console.log('Login attempt with:', email);
@@ -75,9 +83,9 @@ export default function LoginScreen() {
         ]);
         setIsLoading(false);
       } else {
-        console.log('Login successful, waiting for auth state to update...');
-        // Don't navigate here - let the AuthContext and index.tsx handle the redirect
-        // The isLoading state will remain true until the redirect happens
+        console.log('Login successful, auth state will update and trigger redirect...');
+        // Keep loading state true - the redirect will happen automatically
+        // when the auth state updates in AuthContext
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
@@ -187,9 +195,14 @@ export default function LoginScreen() {
               onPress={handleLogin}
               disabled={isLoading}
             >
-              <Text style={styles.loginButtonText}>
-                {isLoading ? 'Signing In...' : 'Sign In'}
-              </Text>
+              {isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <Text style={styles.loginButtonText}>Signing In...</Text>
+                </View>
+              ) : (
+                <Text style={styles.loginButtonText}>Sign In</Text>
+              )}
             </TouchableOpacity>
 
             {/* Divider */}
@@ -342,6 +355,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   dividerContainer: {
     flexDirection: 'row',
