@@ -75,10 +75,9 @@ export default function LoginScreen() {
         ]);
         setIsLoading(false);
       } else {
-        console.log('Login successful, waiting for auth state change...');
-        // Don't manually navigate - let the index.tsx handle it
-        // The auth state change will trigger the redirect
-        // Keep loading state until redirect happens
+        console.log('Login successful, navigating to home...');
+        // Navigate to the home screen after successful login
+        router.replace('/(tabs)/(home)');
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
