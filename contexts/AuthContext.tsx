@@ -41,19 +41,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAuthStatus();
     
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session?.user?.email);
-      setSession(session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
       
-      if (session?.user) {
+      if (event === 'SIGNED_IN' && session?.user) {
+        console.log('User signed in:', session.user.email);
+        setSession(session);
         await loadUserProfile(session.user.id);
         setIsAuthenticated(true);
-      } else {
+        setIsLoading(false);
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        setSession(null);
         setUser(null);
         setIsAuthenticated(false);
+        setIsLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        console.log('Token refreshed');
+        setSession(session);
+      } else if (event === 'USER_UPDATED' && session?.user) {
+        console.log('User updated');
+        await loadUserProfile(session.user.id);
       }
-      
-      setIsLoading(false);
     });
 
     return () => {
@@ -154,11 +163,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error.message };
       }
 
-      if (data.session) {
+      if (data.session && data.user) {
         console.log('Login successful for:', email);
-        setSession(data.session);
-        await loadUserProfile(data.user.id);
-        setIsAuthenticated(true);
+        // The onAuthStateChange listener will handle setting the state
         return {};
       }
 
@@ -195,9 +202,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // If session is available (email confirmation disabled), set authenticated
         if (data.session) {
-          setSession(data.session);
-          await loadUserProfile(data.user.id);
-          setIsAuthenticated(true);
+          console.log('Session available, user can sign in immediately');
+          // The onAuthStateChange listener will handle setting the state
+        } else {
+          console.log('Email confirmation required');
         }
         
         return {};

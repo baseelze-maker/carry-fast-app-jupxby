@@ -29,12 +29,17 @@ export default function LoginScreen() {
     
     // Basic validation
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password');
+      Alert.alert('Missing Information', 'Please enter both email and password');
       return;
     }
 
     if (!email.includes('@')) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      Alert.alert('Invalid Email', 'Please enter a valid email address');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Invalid Password', 'Password must be at least 6 characters long');
       return;
     }
 
@@ -48,20 +53,32 @@ export default function LoginScreen() {
         console.error('Login failed:', result.error);
         
         // Provide more helpful error messages
+        let errorTitle = 'Login Failed';
         let errorMessage = result.error;
         
         if (result.error.toLowerCase().includes('invalid login credentials')) {
-          errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+          errorTitle = 'Invalid Credentials';
+          errorMessage = 'The email or password you entered is incorrect.\n\nIf you don\'t have an account yet, please tap "Sign Up" below to create one.';
         } else if (result.error.toLowerCase().includes('email not confirmed')) {
+          errorTitle = 'Email Not Verified';
           errorMessage = 'Please verify your email address before signing in. Check your inbox for the verification link.';
+        } else if (result.error.toLowerCase().includes('user not found')) {
+          errorTitle = 'Account Not Found';
+          errorMessage = 'No account exists with this email address.\n\nPlease tap "Sign Up" below to create a new account.';
         }
         
-        Alert.alert('Login Failed', errorMessage);
+        Alert.alert(errorTitle, errorMessage, [
+          {
+            text: 'OK',
+            style: 'default',
+          },
+        ]);
         setIsLoading(false);
       } else {
-        console.log('Login successful');
+        console.log('Login successful, waiting for auth state change...');
         // Don't manually navigate - let the index.tsx handle it
         // The auth state change will trigger the redirect
+        // Keep loading state until redirect happens
       }
     } catch (error) {
       console.error('Unexpected login error:', error);
@@ -201,12 +218,19 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Sign Up Link */}
+            {/* Sign Up Link - More Prominent */}
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don&apos;t have an account? </Text>
               <TouchableOpacity onPress={() => router.push('/signup')} disabled={isLoading}>
                 <Text style={styles.signupLink}>Sign Up</Text>
               </TouchableOpacity>
+            </View>
+
+            {/* Help Text */}
+            <View style={styles.helpContainer}>
+              <Text style={styles.helpText}>
+                New to TravelConnect? Create an account to get started!
+              </Text>
             </View>
           </View>
         </View>
@@ -364,6 +388,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
   },
   signupText: {
     fontSize: 16,
@@ -373,5 +398,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primary,
     fontWeight: '700',
+  },
+  helpContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  helpText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
