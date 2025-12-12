@@ -110,6 +110,22 @@ export default function RootLayout() {
                   }}
                 />
 
+                {/* Payment Screens */}
+                <Stack.Screen
+                  name="app-payment"
+                  options={{
+                    headerShown: false,
+                    presentation: "card",
+                  }}
+                />
+                <Stack.Screen
+                  name="payment"
+                  options={{
+                    headerShown: false,
+                    presentation: "card",
+                  }}
+                />
+
                 {/* Onboarding Screen */}
                 <Stack.Screen name="onboarding" options={{ headerShown: false }} />
 
