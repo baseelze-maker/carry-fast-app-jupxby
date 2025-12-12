@@ -17,19 +17,19 @@ import { colors } from '@/styles/commonStyles';
 import { IconSymbol } from '@/components/IconSymbol';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function SignUpScreen() {
+export default function SignupScreen() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [userType, setUserType] = useState<'traveler' | 'sender' | 'both'>('both');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [userType, setUserType] = useState<'traveler' | 'sender' | 'both'>('both');
   const { signup } = useAuth();
 
-  const handleSignUp = async () => {
-    console.log('Sign up attempt with:', email, fullName, userType);
+  const handleSignup = async () => {
+    console.log('Signup attempt with:', email);
     
     // Basic validation
     if (!fullName || !email || !password || !confirmPassword) {
@@ -56,14 +56,29 @@ export default function SignUpScreen() {
 
     try {
       // Call the signup function from AuthContext
-      await signup(fullName, email, password, userType);
-      console.log('Signup successful');
+      const result = await signup(fullName, email, password, userType);
       
-      // Don't manually navigate - let the index.tsx handle it
-      // The auth state change will trigger the redirect
+      if (result.error) {
+        console.error('Signup failed:', result.error);
+        Alert.alert('Signup Failed', result.error);
+        setIsLoading(false);
+      } else {
+        console.log('Signup successful');
+        Alert.alert(
+          'Success!',
+          'Your account has been created. Please check your email to verify your account before signing in.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/login'),
+            },
+          ]
+        );
+        setIsLoading(false);
+      }
     } catch (error) {
-      console.error('Signup error:', error);
-      Alert.alert('Error', 'Failed to create account. Please try again.');
+      console.error('Unexpected signup error:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
   };
@@ -79,27 +94,25 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.content}>
-          {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <IconSymbol
-              ios_icon_name="chevron.left"
-              android_material_icon_name="arrow_back"
-              size={24}
-              color={colors.text}
-            />
-          </TouchableOpacity>
-
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join TravelConnect today</Text>
+          {/* Logo/Icon Section */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoCircle}>
+              <IconSymbol
+                ios_icon_name="airplane"
+                android_material_icon_name="flight"
+                size={48}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.appTitle}>TravelConnect</Text>
+            <Text style={styles.appSubtitle}>Connect Travelers & Senders</Text>
           </View>
 
-          {/* Sign Up Form */}
+          {/* Signup Form */}
           <View style={styles.formContainer}>
+            <Text style={styles.welcomeText}>Create Account</Text>
+            <Text style={styles.instructionText}>Sign up to get started</Text>
+
             {/* Full Name Input */}
             <View style={styles.inputContainer}>
               <IconSymbol
@@ -117,6 +130,7 @@ export default function SignUpScreen() {
                 autoCapitalize="words"
                 autoComplete="name"
                 autoCorrect={false}
+                editable={!isLoading}
               />
             </View>
 
@@ -138,6 +152,7 @@ export default function SignUpScreen() {
                 autoCapitalize="none"
                 autoComplete="email"
                 autoCorrect={false}
+                editable={!isLoading}
               />
             </View>
 
@@ -157,12 +172,14 @@ export default function SignUpScreen() {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
-                autoComplete="password-new"
+                autoComplete="password"
                 autoCorrect={false}
+                editable={!isLoading}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}
+                disabled={isLoading}
               >
                 <IconSymbol
                   ios_icon_name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
@@ -189,12 +206,14 @@ export default function SignUpScreen() {
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
-                autoComplete="password-new"
+                autoComplete="password"
                 autoCorrect={false}
+                editable={!isLoading}
               />
               <TouchableOpacity
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 style={styles.eyeIcon}
+                disabled={isLoading}
               >
                 <IconSymbol
                   ios_icon_name={showConfirmPassword ? 'eye.slash.fill' : 'eye.fill'}
@@ -207,7 +226,7 @@ export default function SignUpScreen() {
 
             {/* User Type Selection */}
             <View style={styles.userTypeContainer}>
-              <Text style={styles.userTypeLabel}>I want to:</Text>
+              <Text style={styles.userTypeLabel}>I am a:</Text>
               <View style={styles.userTypeButtons}>
                 <TouchableOpacity
                   style={[
@@ -215,59 +234,42 @@ export default function SignUpScreen() {
                     userType === 'traveler' && styles.userTypeButtonActive,
                   ]}
                   onPress={() => setUserType('traveler')}
+                  disabled={isLoading}
                 >
-                  <IconSymbol
-                    ios_icon_name="airplane"
-                    android_material_icon_name="flight"
-                    size={20}
-                    color={userType === 'traveler' ? '#FFFFFF' : colors.text}
-                  />
                   <Text
                     style={[
                       styles.userTypeButtonText,
                       userType === 'traveler' && styles.userTypeButtonTextActive,
                     ]}
                   >
-                    Travel
+                    Traveler
                   </Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                   style={[
                     styles.userTypeButton,
                     userType === 'sender' && styles.userTypeButtonActive,
                   ]}
                   onPress={() => setUserType('sender')}
+                  disabled={isLoading}
                 >
-                  <IconSymbol
-                    ios_icon_name="shippingbox.fill"
-                    android_material_icon_name="local_shipping"
-                    size={20}
-                    color={userType === 'sender' ? '#FFFFFF' : colors.text}
-                  />
                   <Text
                     style={[
                       styles.userTypeButtonText,
                       userType === 'sender' && styles.userTypeButtonTextActive,
                     ]}
                   >
-                    Send Items
+                    Sender
                   </Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                   style={[
                     styles.userTypeButton,
                     userType === 'both' && styles.userTypeButtonActive,
                   ]}
                   onPress={() => setUserType('both')}
+                  disabled={isLoading}
                 >
-                  <IconSymbol
-                    ios_icon_name="star.fill"
-                    android_material_icon_name="star"
-                    size={20}
-                    color={userType === 'both' ? '#FFFFFF' : colors.text}
-                  />
                   <Text
                     style={[
                       styles.userTypeButtonText,
@@ -280,10 +282,10 @@ export default function SignUpScreen() {
               </View>
             </View>
 
-            {/* Sign Up Button */}
+            {/* Signup Button */}
             <TouchableOpacity
               style={[styles.signupButton, isLoading && styles.signupButtonDisabled]}
-              onPress={handleSignUp}
+              onPress={handleSignup}
               disabled={isLoading}
             >
               <Text style={styles.signupButtonText}>
@@ -291,18 +293,11 @@ export default function SignUpScreen() {
               </Text>
             </TouchableOpacity>
 
-            {/* Terms and Privacy */}
-            <Text style={styles.termsText}>
-              By signing up, you agree to our{' '}
-              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>
-            </Text>
-
-            {/* Sign In Link */}
-            <View style={styles.signinContainer}>
-              <Text style={styles.signinText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => router.back()}>
-                <Text style={styles.signinLink}>Sign In</Text>
+            {/* Login Link */}
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Already have an account? </Text>
+              <TouchableOpacity onPress={() => router.push('/login')} disabled={isLoading}>
+                <Text style={styles.loginLink}>Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -324,34 +319,48 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingVertical: 40,
+    justifyContent: 'center',
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
-    elevation: 2,
+    marginBottom: 12,
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+    elevation: 4,
   },
-  header: {
-    marginBottom: 32,
+  appTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
   },
-  title: {
-    fontSize: 32,
+  appSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  formContainer: {
+    width: '100%',
+  },
+  welcomeText: {
+    fontSize: 24,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
   },
-  subtitle: {
+  instructionText: {
     fontSize: 16,
     color: colors.textSecondary,
-  },
-  formContainer: {
-    width: '100%',
+    marginBottom: 24,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -391,16 +400,13 @@ const styles = StyleSheet.create({
   },
   userTypeButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 12,
     paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: colors.card,
     borderWidth: 2,
     borderColor: colors.border,
-    gap: 6,
+    alignItems: 'center',
   },
   userTypeButtonActive: {
     backgroundColor: colors.primary,
@@ -420,7 +426,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
     boxShadow: '0px 4px 8px rgba(76, 175, 80, 0.3)',
     elevation: 4,
   },
@@ -432,27 +438,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  termsText: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 18,
-  },
-  termsLink: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  signinContainer: {
+  loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  signinText: {
+  loginText: {
     fontSize: 16,
     color: colors.textSecondary,
   },
-  signinLink: {
+  loginLink: {
     fontSize: 16,
     color: colors.primary,
     fontWeight: '700',

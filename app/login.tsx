@@ -42,14 +42,20 @@ export default function LoginScreen() {
 
     try {
       // Call the login function from AuthContext
-      await login(email, password);
-      console.log('Login successful');
+      const result = await login(email, password);
       
-      // Don't manually navigate - let the index.tsx handle it
-      // The auth state change will trigger the redirect
+      if (result.error) {
+        console.error('Login failed:', result.error);
+        Alert.alert('Login Failed', result.error);
+        setIsLoading(false);
+      } else {
+        console.log('Login successful');
+        // Don't manually navigate - let the index.tsx handle it
+        // The auth state change will trigger the redirect
+      }
     } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Error', 'Failed to login. Please try again.');
+      console.error('Unexpected login error:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
   };
@@ -102,6 +108,7 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 autoComplete="email"
                 autoCorrect={false}
+                editable={!isLoading}
               />
             </View>
 
@@ -123,10 +130,12 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 autoComplete="password"
                 autoCorrect={false}
+                editable={!isLoading}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}
+                disabled={isLoading}
               >
                 <IconSymbol
                   ios_icon_name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
@@ -141,6 +150,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={() => router.push('/forgot-password')}
               style={styles.forgotPasswordContainer}
+              disabled={isLoading}
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
@@ -165,7 +175,7 @@ export default function LoginScreen() {
 
             {/* Social Login Buttons (Optional - for future implementation) */}
             <View style={styles.socialButtonsContainer}>
-              <TouchableOpacity style={styles.socialButton}>
+              <TouchableOpacity style={styles.socialButton} disabled={true}>
                 <IconSymbol
                   ios_icon_name="apple.logo"
                   android_material_icon_name="apple"
@@ -173,10 +183,10 @@ export default function LoginScreen() {
                   color={colors.text}
                 />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
+              <TouchableOpacity style={styles.socialButton} disabled={true}>
                 <Text style={styles.socialButtonText}>G</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
+              <TouchableOpacity style={styles.socialButton} disabled={true}>
                 <Text style={styles.socialButtonText}>f</Text>
               </TouchableOpacity>
             </View>
@@ -184,7 +194,7 @@ export default function LoginScreen() {
             {/* Sign Up Link */}
             <View style={styles.signupContainer}>
               <Text style={styles.signupText}>Don&apos;t have an account? </Text>
-              <TouchableOpacity onPress={() => router.push('/signup')}>
+              <TouchableOpacity onPress={() => router.push('/signup')} disabled={isLoading}>
                 <Text style={styles.signupLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>
@@ -333,6 +343,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
     elevation: 2,
+    opacity: 0.5,
   },
   socialButtonText: {
     fontSize: 24,
