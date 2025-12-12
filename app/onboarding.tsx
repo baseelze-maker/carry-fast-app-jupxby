@@ -24,7 +24,7 @@ const onboardingData = [
     id: 1,
     icon: 'airplane',
     iconAndroid: 'flight',
-    title: 'Welcome to TravelConnect',
+    title: 'Welcome to Wasel',
     description: 'Connect travelers with extra luggage space to people who need to send items quickly and affordably.',
     gradient: ['#4CAF50', '#45a049'],
   },

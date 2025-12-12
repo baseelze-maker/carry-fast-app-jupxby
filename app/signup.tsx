@@ -112,7 +112,7 @@ export default function SignupScreen() {
                 color={colors.primary}
               />
             </View>
-            <Text style={styles.appTitle}>TravelConnect</Text>
+            <Text style={styles.appTitle}>Wasel</Text>
             <Text style={styles.appSubtitle}>Connect Carriers & Senders</Text>
           </View>
 

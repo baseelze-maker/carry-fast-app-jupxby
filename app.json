@@ -1,7 +1,8 @@
+
 {
   "expo": {
-    "name": "CarryFast",
-    "slug": "CarryFast",
+    "name": "Wasel",
+    "slug": "Wasel",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -44,5 +45,5 @@
       "router": {}
     }
   },
-  "scheme": "CarryFast"
+  "scheme": "Wasel"
 }

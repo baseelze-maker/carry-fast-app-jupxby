@@ -107,7 +107,7 @@ export default function LoginScreen() {
                 color={colors.primary}
               />
             </View>
-            <Text style={styles.appTitle}>TravelConnect</Text>
+            <Text style={styles.appTitle}>Wasel</Text>
             <Text style={styles.appSubtitle}>Connect Carriers & Senders</Text>
           </View>
 
@@ -228,7 +228,7 @@ export default function LoginScreen() {
             {/* Help Text */}
             <View style={styles.helpContainer}>
               <Text style={styles.helpText}>
-                New to TravelConnect? Create an account to get started!
+                New to Wasel? Create an account to get started!
               </Text>
             </View>
           </View>

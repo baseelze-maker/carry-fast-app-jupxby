@@ -17,7 +17,7 @@ export default function HomeScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>TravelConnect</Text>
+          <Text style={styles.headerTitle}>Wasel</Text>
           <Text style={styles.headerSubtitle}>Connect Carriers & Senders</Text>
         </View>
 
@@ -30,7 +30,7 @@ export default function HomeScreen() {
               size={60} 
               color={colors.primary} 
             />
-            <Text style={styles.heroTitle}>Welcome to TravelConnect</Text>
+            <Text style={styles.heroTitle}>Welcome to Wasel</Text>
             <Text style={styles.heroText}>
               Connect carriers with people who need to send items. 
               Make the most of your luggage space or send items quickly and affordably.
