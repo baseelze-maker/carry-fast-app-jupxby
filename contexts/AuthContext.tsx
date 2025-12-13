@@ -168,8 +168,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data.session && data.user) {
         console.log('Login successful for:', email);
-        // The onAuthStateChange listener will handle setting the state
-        // Return success immediately - the listener will update the state
+        
+        // Immediately update the auth state
+        setSession(data.session);
+        await loadUserProfile(data.user.id);
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        
+        console.log('Auth state immediately updated after login');
         return {};
       }
 
@@ -207,7 +213,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // If session is available (email confirmation disabled), set authenticated
         if (data.session) {
           console.log('Session available, user can sign in immediately');
-          // The onAuthStateChange listener will handle setting the state
+          setSession(data.session);
+          await loadUserProfile(data.user.id);
+          setIsAuthenticated(true);
+          setIsLoading(false);
         } else {
           console.log('Email confirmation required');
         }
