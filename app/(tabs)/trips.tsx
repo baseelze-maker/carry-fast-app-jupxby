@@ -59,6 +59,14 @@ export default function TripsScreen() {
     router.push('/trips/trip-details');
   };
 
+  const handleViewRequestDetails = (requestId: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    console.log('Opening request details for:', requestId);
+    // For now, navigate to trip details page
+    // In a real app, you would create a separate request-details page
+    router.push('/trips/trip-details');
+  };
+
   const handlePayment = (request: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     console.log('Opening payment for:', request.id);
@@ -69,6 +77,12 @@ export default function TripsScreen() {
         travelerName: request.traveler,
       },
     });
+  };
+
+  const handleCancelRequest = (requestId: string) => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    console.log('Canceling request:', requestId);
+    // In a real app, you would show a confirmation dialog and then cancel the request
   };
 
   return (
@@ -297,10 +311,18 @@ export default function TripsScreen() {
                       </TouchableOpacity>
                     ) : (
                       <>
-                        <TouchableOpacity style={styles.actionButton} activeOpacity={0.7}>
+                        <TouchableOpacity 
+                          style={styles.actionButton} 
+                          activeOpacity={0.7}
+                          onPress={() => handleViewRequestDetails(request.id)}
+                        >
                           <Text style={styles.actionButtonText}>View Details</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionButtonDanger} activeOpacity={0.7}>
+                        <TouchableOpacity 
+                          style={styles.actionButtonDanger} 
+                          activeOpacity={0.7}
+                          onPress={() => handleCancelRequest(request.id)}
+                        >
                           <Text style={styles.actionButtonDangerText}>Cancel</Text>
                         </TouchableOpacity>
                       </>
