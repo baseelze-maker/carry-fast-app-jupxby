@@ -82,6 +82,7 @@ export default function TripDetailsScreen() {
   const [counterOfferAmount, setCounterOfferAmount] = useState('');
 
   const handleAcceptRequest = (request: any) => {
+    console.log('Accept button pressed for request:', request.id);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     
     Alert.alert(
@@ -91,6 +92,7 @@ export default function TripDetailsScreen() {
         {
           text: 'Cancel',
           style: 'cancel',
+          onPress: () => console.log('Accept cancelled'),
         },
         {
           text: 'Accept Request',
@@ -108,7 +110,7 @@ export default function TripDetailsScreen() {
             Alert.alert(
               'Request Accepted!',
               `✓ Primary acceptance sent to ${request.requester.name}\n\n${request.requester.name} will now:\n\n1. Pay $5 communication fee to unlock messaging\n2. Coordinate pickup details with you via messages\n3. Pay $${request.counterOffer || request.offeredAmount} carrying service fee (cash or card)\n\nYou'll be notified when they pay the communication fee and messaging is unlocked.`,
-              [{ text: 'OK' }]
+              [{ text: 'OK', onPress: () => console.log('Acceptance confirmed') }]
             );
           },
         },
@@ -117,6 +119,7 @@ export default function TripDetailsScreen() {
   };
 
   const handleDeclineRequest = (request: any) => {
+    console.log('Decline button pressed for request:', request.id);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     
     Alert.alert(
@@ -126,6 +129,7 @@ export default function TripDetailsScreen() {
         {
           text: 'Cancel',
           style: 'cancel',
+          onPress: () => console.log('Decline cancelled'),
         },
         {
           text: 'Decline',
@@ -140,7 +144,7 @@ export default function TripDetailsScreen() {
             Alert.alert(
               'Request Declined',
               `${request.requester.name} has been notified.`,
-              [{ text: 'OK' }]
+              [{ text: 'OK', onPress: () => console.log('Decline confirmed') }]
             );
           },
         },
@@ -149,6 +153,8 @@ export default function TripDetailsScreen() {
   };
 
   const handleSendCounterOffer = (request: any) => {
+    console.log('Counter offer button pressed for request:', request.id);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedRequest(request);
     setCounterOfferAmount(request.offeredAmount.toString());
     setShowCounterOfferModal(true);
@@ -444,8 +450,11 @@ export default function TripDetailsScreen() {
                   <View style={styles.actionsContainer}>
                     <TouchableOpacity 
                       style={styles.acceptButton}
-                      onPress={() => handleAcceptRequest(request)}
-                      activeOpacity={0.8}
+                      onPress={() => {
+                        console.log('Accept button tapped!');
+                        handleAcceptRequest(request);
+                      }}
+                      activeOpacity={0.7}
                     >
                       <IconSymbol 
                         ios_icon_name="checkmark.circle.fill" 
@@ -459,8 +468,11 @@ export default function TripDetailsScreen() {
                     {!request.counterOffer && (
                       <TouchableOpacity 
                         style={styles.counterButton}
-                        onPress={() => handleSendCounterOffer(request)}
-                        activeOpacity={0.8}
+                        onPress={() => {
+                          console.log('Counter button tapped!');
+                          handleSendCounterOffer(request);
+                        }}
+                        activeOpacity={0.7}
                       >
                         <IconSymbol 
                           ios_icon_name="arrow.left.arrow.right" 
@@ -474,8 +486,11 @@ export default function TripDetailsScreen() {
                     
                     <TouchableOpacity 
                       style={styles.declineButton}
-                      onPress={() => handleDeclineRequest(request)}
-                      activeOpacity={0.8}
+                      onPress={() => {
+                        console.log('Decline button tapped!');
+                        handleDeclineRequest(request);
+                      }}
+                      activeOpacity={0.7}
                     >
                       <IconSymbol 
                         ios_icon_name="xmark.circle.fill" 
@@ -1076,13 +1091,12 @@ const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 12,
   },
   acceptButton: {
     flex: 1,
     backgroundColor: colors.success,
     borderRadius: 8,
-    padding: 12,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1097,7 +1111,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     borderRadius: 8,
-    padding: 12,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1114,7 +1128,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     borderRadius: 8,
-    padding: 12,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
