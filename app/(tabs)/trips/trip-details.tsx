@@ -80,9 +80,19 @@ export default function TripDetailsScreen() {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [showCounterOfferModal, setShowCounterOfferModal] = useState(false);
   const [counterOfferAmount, setCounterOfferAmount] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAcceptRequest = (request: any) => {
-    console.log('Accept button pressed for request:', request.id);
+    if (isProcessing) {
+      console.log('Already processing a request, please wait');
+      return;
+    }
+
+    console.log('=== ACCEPT BUTTON PRESSED ===');
+    console.log('Request ID:', request.id);
+    console.log('Requester:', request.requester.name);
+    console.log('Amount:', request.counterOffer || request.offeredAmount);
+    
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     
     Alert.alert(
@@ -92,26 +102,49 @@ export default function TripDetailsScreen() {
         {
           text: 'Cancel',
           style: 'cancel',
-          onPress: () => console.log('Accept cancelled'),
+          onPress: () => {
+            console.log('Accept cancelled by user');
+            setIsProcessing(false);
+          },
         },
         {
           text: 'Accept Request',
           onPress: () => {
-            console.log('Accepting request (Primary Acceptance):', request.id);
-            // Update request status to 'primary_accepted'
-            setTrip(prevTrip => ({
-              ...prevTrip,
-              requests: prevTrip.requests.map(r =>
-                r.id === request.id ? { ...r, status: 'primary_accepted' } : r
-              ),
-              availableWeight: prevTrip.availableWeight - request.weight,
-            }));
+            setIsProcessing(true);
+            console.log('=== PROCESSING ACCEPTANCE ===');
+            console.log('Updating request status to primary_accepted');
+            console.log('Current available weight:', trip.availableWeight);
+            console.log('Request weight:', request.weight);
+            console.log('New available weight:', trip.availableWeight - request.weight);
             
-            Alert.alert(
-              'Request Accepted!',
-              `✓ Primary acceptance sent to ${request.requester.name}\n\n${request.requester.name} will now:\n\n1. Pay $5 communication fee to unlock messaging\n2. Coordinate pickup details with you via messages\n3. Pay $${request.counterOffer || request.offeredAmount} carrying service fee (cash or card)\n\nYou'll be notified when they pay the communication fee and messaging is unlocked.`,
-              [{ text: 'OK', onPress: () => console.log('Acceptance confirmed') }]
-            );
+            // Update request status to 'primary_accepted'
+            setTrip(prevTrip => {
+              const updatedTrip = {
+                ...prevTrip,
+                requests: prevTrip.requests.map(r =>
+                  r.id === request.id ? { ...r, status: 'primary_accepted' } : r
+                ),
+                availableWeight: prevTrip.availableWeight - request.weight,
+              };
+              console.log('=== TRIP STATE UPDATED ===');
+              console.log('Updated trip:', JSON.stringify(updatedTrip, null, 2));
+              return updatedTrip;
+            });
+            
+            setTimeout(() => {
+              setIsProcessing(false);
+              Alert.alert(
+                'Request Accepted!',
+                `✓ Primary acceptance sent to ${request.requester.name}\n\n${request.requester.name} will now:\n\n1. Pay $5 communication fee to unlock messaging\n2. Coordinate pickup details with you via messages\n3. Pay $${request.counterOffer || request.offeredAmount} carrying service fee (cash or card)\n\nYou'll be notified when they pay the communication fee and messaging is unlocked.`,
+                [{ 
+                  text: 'OK', 
+                  onPress: () => {
+                    console.log('=== ACCEPTANCE COMPLETE ===');
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  }
+                }]
+              );
+            }, 100);
           },
         },
       ]
@@ -119,7 +152,15 @@ export default function TripDetailsScreen() {
   };
 
   const handleDeclineRequest = (request: any) => {
-    console.log('Decline button pressed for request:', request.id);
+    if (isProcessing) {
+      console.log('Already processing a request, please wait');
+      return;
+    }
+
+    console.log('=== DECLINE BUTTON PRESSED ===');
+    console.log('Request ID:', request.id);
+    console.log('Requester:', request.requester.name);
+    
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     
     Alert.alert(
@@ -129,23 +170,45 @@ export default function TripDetailsScreen() {
         {
           text: 'Cancel',
           style: 'cancel',
-          onPress: () => console.log('Decline cancelled'),
+          onPress: () => {
+            console.log('Decline cancelled by user');
+            setIsProcessing(false);
+          },
         },
         {
           text: 'Decline',
           style: 'destructive',
           onPress: () => {
-            console.log('Declining request:', request.id);
-            setTrip(prevTrip => ({
-              ...prevTrip,
-              requests: prevTrip.requests.filter(r => r.id !== request.id),
-            }));
+            setIsProcessing(true);
+            console.log('=== PROCESSING DECLINE ===');
+            console.log('Removing request from list');
+            console.log('Current requests count:', trip.requests.length);
             
-            Alert.alert(
-              'Request Declined',
-              `${request.requester.name} has been notified.`,
-              [{ text: 'OK', onPress: () => console.log('Decline confirmed') }]
-            );
+            setTrip(prevTrip => {
+              const updatedTrip = {
+                ...prevTrip,
+                requests: prevTrip.requests.filter(r => r.id !== request.id),
+              };
+              console.log('=== TRIP STATE UPDATED ===');
+              console.log('New requests count:', updatedTrip.requests.length);
+              console.log('Updated trip:', JSON.stringify(updatedTrip, null, 2));
+              return updatedTrip;
+            });
+            
+            setTimeout(() => {
+              setIsProcessing(false);
+              Alert.alert(
+                'Request Declined',
+                `${request.requester.name} has been notified.`,
+                [{ 
+                  text: 'OK', 
+                  onPress: () => {
+                    console.log('=== DECLINE COMPLETE ===');
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  }
+                }]
+              );
+            }, 100);
           },
         },
       ]
@@ -216,6 +279,13 @@ export default function TripDetailsScreen() {
   const pendingRequests = trip.requests.filter(r => r.status === 'pending');
   const primaryAcceptedRequests = trip.requests.filter(r => r.status === 'primary_accepted');
   const acceptedRequests = trip.requests.filter(r => r.status === 'accepted' || r.status === 'paid');
+
+  console.log('=== RENDER STATE ===');
+  console.log('Total requests:', trip.requests.length);
+  console.log('Pending requests:', pendingRequests.length);
+  console.log('Primary accepted requests:', primaryAcceptedRequests.length);
+  console.log('Accepted requests:', acceptedRequests.length);
+  console.log('Available weight:', trip.availableWeight);
 
   return (
     <View style={styles.container}>
@@ -449,12 +519,13 @@ export default function TripDetailsScreen() {
                   {/* Actions */}
                   <View style={styles.actionsContainer}>
                     <TouchableOpacity 
-                      style={styles.acceptButton}
+                      style={[styles.acceptButton, isProcessing && styles.buttonDisabled]}
                       onPress={() => {
-                        console.log('Accept button tapped!');
+                        console.log('=== ACCEPT BUTTON TAPPED ===');
                         handleAcceptRequest(request);
                       }}
                       activeOpacity={0.7}
+                      disabled={isProcessing}
                     >
                       <IconSymbol 
                         ios_icon_name="checkmark.circle.fill" 
@@ -462,17 +533,20 @@ export default function TripDetailsScreen() {
                         size={20} 
                         color="#FFFFFF" 
                       />
-                      <Text style={styles.acceptButtonText}>Accept</Text>
+                      <Text style={styles.acceptButtonText}>
+                        {isProcessing ? 'Processing...' : 'Accept'}
+                      </Text>
                     </TouchableOpacity>
                     
                     {!request.counterOffer && (
                       <TouchableOpacity 
-                        style={styles.counterButton}
+                        style={[styles.counterButton, isProcessing && styles.buttonDisabled]}
                         onPress={() => {
-                          console.log('Counter button tapped!');
+                          console.log('=== COUNTER BUTTON TAPPED ===');
                           handleSendCounterOffer(request);
                         }}
                         activeOpacity={0.7}
+                        disabled={isProcessing}
                       >
                         <IconSymbol 
                           ios_icon_name="arrow.left.arrow.right" 
@@ -485,12 +559,13 @@ export default function TripDetailsScreen() {
                     )}
                     
                     <TouchableOpacity 
-                      style={styles.declineButton}
+                      style={[styles.declineButton, isProcessing && styles.buttonDisabled]}
                       onPress={() => {
-                        console.log('Decline button tapped!');
+                        console.log('=== DECLINE BUTTON TAPPED ===');
                         handleDeclineRequest(request);
                       }}
                       activeOpacity={0.7}
+                      disabled={isProcessing}
                     >
                       <IconSymbol 
                         ios_icon_name="xmark.circle.fill" 
@@ -498,7 +573,9 @@ export default function TripDetailsScreen() {
                         size={20} 
                         color={colors.error} 
                       />
-                      <Text style={styles.declineButtonText}>Decline</Text>
+                      <Text style={styles.declineButtonText}>
+                        {isProcessing ? 'Processing...' : 'Decline'}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -1140,6 +1217,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: colors.error,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   paymentFlowCard: {
     backgroundColor: colors.highlight,
