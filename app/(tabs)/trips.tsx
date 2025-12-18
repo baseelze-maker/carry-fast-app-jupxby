@@ -6,48 +6,10 @@ import { IconSymbol } from "@/components/IconSymbol";
 import { colors } from "@/styles/commonStyles";
 import * as Haptics from "expo-haptics";
 
-// Mock data
-const mockMyTrips = [
-  {
-    id: '1',
-    from: 'New York, USA',
-    to: 'London, UK',
-    date: '2024-02-15',
-    weight: '5 kg',
-    status: 'active',
-    requests: 3,
-  },
-  {
-    id: '2',
-    from: 'Boston, USA',
-    to: 'Paris, France',
-    date: '2024-01-20',
-    weight: '3 kg',
-    status: 'completed',
-    requests: 0,
-  },
-];
+// Empty arrays - ready for you to add your own trips and requests
+const mockMyTrips: any[] = [];
 
-const mockMyRequests = [
-  {
-    id: '1',
-    traveler: 'Sarah Johnson',
-    from: 'Los Angeles, USA',
-    to: 'Tokyo, Japan',
-    date: '2024-02-18',
-    status: 'pending',
-    amount: 25,
-  },
-  {
-    id: '2',
-    traveler: 'Mike Chen',
-    from: 'Chicago, USA',
-    to: 'Berlin, Germany',
-    date: '2024-01-25',
-    status: 'accepted',
-    amount: 30,
-  },
-];
+const mockMyRequests: any[] = [];
 
 export default function TripsScreen() {
   const router = useRouter();
@@ -131,210 +93,272 @@ export default function TripsScreen() {
       >
         {activeTab === 'trips' ? (
           <View style={styles.section}>
-            {mockMyTrips.map((trip, index) => (
-              <React.Fragment key={index}>
-                <View style={styles.card}>
-                  {/* Status Badge */}
-                  <View style={[
-                    styles.statusBadge,
-                    trip.status === 'active' ? styles.statusActive : styles.statusCompleted
-                  ]}>
-                    <Text style={styles.statusText}>
-                      {trip.status === 'active' ? 'Active' : 'Completed'}
-                    </Text>
-                  </View>
-
-                  {/* Route */}
-                  <View style={styles.routeContainer}>
-                    <View style={styles.locationRow}>
-                      <IconSymbol 
-                        ios_icon_name="airplane.departure" 
-                        android_material_icon_name="flight-takeoff" 
-                        size={18} 
-                        color={colors.secondary} 
-                      />
-                      <Text style={styles.locationText}>{trip.from}</Text>
-                    </View>
-                    <View style={styles.routeLine} />
-                    <View style={styles.locationRow}>
-                      <IconSymbol 
-                        ios_icon_name="airplane.arrival" 
-                        android_material_icon_name="flight-land" 
-                        size={18} 
-                        color={colors.primary} 
-                      />
-                      <Text style={styles.locationText}>{trip.to}</Text>
-                    </View>
-                  </View>
-
-                  {/* Details */}
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <IconSymbol 
-                        ios_icon_name="calendar" 
-                        android_material_icon_name="calendar-today" 
-                        size={14} 
-                        color={colors.textSecondary} 
-                      />
-                      <Text style={styles.detailText}>{trip.date}</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <IconSymbol 
-                        ios_icon_name="scalemass" 
-                        android_material_icon_name="scale" 
-                        size={14} 
-                        color={colors.textSecondary} 
-                      />
-                      <Text style={styles.detailText}>{trip.weight}</Text>
-                    </View>
-                  </View>
-
-                  {/* Requests */}
-                  {trip.status === 'active' && trip.requests > 0 && (
-                    <View style={styles.requestsContainer}>
-                      <IconSymbol 
-                        ios_icon_name="envelope.badge" 
-                        android_material_icon_name="mail" 
-                        size={16} 
-                        color={colors.accent} 
-                      />
-                      <Text style={styles.requestsText}>
-                        {trip.requests} new request{trip.requests > 1 ? 's' : ''}
+            {mockMyTrips.length === 0 ? (
+              <View style={styles.emptyState}>
+                <IconSymbol 
+                  ios_icon_name="airplane" 
+                  android_material_icon_name="flight" 
+                  size={64} 
+                  color={colors.textSecondary} 
+                />
+                <Text style={styles.emptyStateTitle}>No Trips Yet</Text>
+                <Text style={styles.emptyStateText}>
+                  Post your first trip to start connecting with people who need to send items to your destination.
+                </Text>
+                <TouchableOpacity 
+                  style={styles.emptyStateButton}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push('/(tabs)/(home)/post-trip');
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <IconSymbol 
+                    ios_icon_name="plus.circle.fill" 
+                    android_material_icon_name="add-circle" 
+                    size={20} 
+                    color="#FFFFFF" 
+                  />
+                  <Text style={styles.emptyStateButtonText}>Post a Trip</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              mockMyTrips.map((trip, index) => (
+                <React.Fragment key={index}>
+                  <View style={styles.card}>
+                    {/* Status Badge */}
+                    <View style={[
+                      styles.statusBadge,
+                      trip.status === 'active' ? styles.statusActive : styles.statusCompleted
+                    ]}>
+                      <Text style={styles.statusText}>
+                        {trip.status === 'active' ? 'Active' : 'Completed'}
                       </Text>
                     </View>
-                  )}
 
-                  {/* Actions */}
-                  <View style={styles.actionsRow}>
-                    <TouchableOpacity 
-                      style={styles.actionButton} 
-                      activeOpacity={0.7}
-                      onPress={() => handleViewTripDetails(trip.id)}
-                    >
-                      <Text style={styles.actionButtonText}>View Details</Text>
-                    </TouchableOpacity>
-                    {trip.status === 'active' && (
-                      <TouchableOpacity style={styles.actionButtonSecondary} activeOpacity={0.7}>
-                        <Text style={styles.actionButtonSecondaryText}>Edit</Text>
-                      </TouchableOpacity>
+                    {/* Route */}
+                    <View style={styles.routeContainer}>
+                      <View style={styles.locationRow}>
+                        <IconSymbol 
+                          ios_icon_name="airplane.departure" 
+                          android_material_icon_name="flight-takeoff" 
+                          size={18} 
+                          color={colors.secondary} 
+                        />
+                        <Text style={styles.locationText}>{trip.from}</Text>
+                      </View>
+                      <View style={styles.routeLine} />
+                      <View style={styles.locationRow}>
+                        <IconSymbol 
+                          ios_icon_name="airplane.arrival" 
+                          android_material_icon_name="flight-land" 
+                          size={18} 
+                          color={colors.primary} 
+                        />
+                        <Text style={styles.locationText}>{trip.to}</Text>
+                      </View>
+                    </View>
+
+                    {/* Details */}
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <IconSymbol 
+                          ios_icon_name="calendar" 
+                          android_material_icon_name="calendar-today" 
+                          size={14} 
+                          color={colors.textSecondary} 
+                        />
+                        <Text style={styles.detailText}>{trip.date}</Text>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <IconSymbol 
+                          ios_icon_name="scalemass" 
+                          android_material_icon_name="scale" 
+                          size={14} 
+                          color={colors.textSecondary} 
+                        />
+                        <Text style={styles.detailText}>{trip.weight}</Text>
+                      </View>
+                    </View>
+
+                    {/* Requests */}
+                    {trip.status === 'active' && trip.requests > 0 && (
+                      <View style={styles.requestsContainer}>
+                        <IconSymbol 
+                          ios_icon_name="envelope.badge" 
+                          android_material_icon_name="mail" 
+                          size={16} 
+                          color={colors.accent} 
+                        />
+                        <Text style={styles.requestsText}>
+                          {trip.requests} new request{trip.requests > 1 ? 's' : ''}
+                        </Text>
+                      </View>
                     )}
+
+                    {/* Actions */}
+                    <View style={styles.actionsRow}>
+                      <TouchableOpacity 
+                        style={styles.actionButton} 
+                        activeOpacity={0.7}
+                        onPress={() => handleViewTripDetails(trip.id)}
+                      >
+                        <Text style={styles.actionButtonText}>View Details</Text>
+                      </TouchableOpacity>
+                      {trip.status === 'active' && (
+                        <TouchableOpacity style={styles.actionButtonSecondary} activeOpacity={0.7}>
+                          <Text style={styles.actionButtonSecondaryText}>Edit</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
-                </View>
-              </React.Fragment>
-            ))}
+                </React.Fragment>
+              ))
+            )}
           </View>
         ) : (
           <View style={styles.section}>
-            {mockMyRequests.map((request, index) => (
-              <React.Fragment key={index}>
-                <View style={styles.card}>
-                  {/* Status Badge */}
-                  <View style={[
-                    styles.statusBadge,
-                    request.status === 'accepted' ? styles.statusAccepted : styles.statusPending
-                  ]}>
-                    <Text style={styles.statusText}>
-                      {request.status === 'accepted' ? 'Accepted - Pay Now' : 'Pending'}
-                    </Text>
-                  </View>
-
-                  {/* Traveler Info */}
-                  <View style={styles.travelerRow}>
-                    <IconSymbol 
-                      ios_icon_name="person.circle.fill" 
-                      android_material_icon_name="account-circle" 
-                      size={40} 
-                      color={colors.primary} 
-                    />
-                    <View style={styles.travelerInfo}>
-                      <Text style={styles.travelerLabel}>Traveler</Text>
-                      <Text style={styles.travelerName}>{request.traveler}</Text>
+            {mockMyRequests.length === 0 ? (
+              <View style={styles.emptyState}>
+                <IconSymbol 
+                  ios_icon_name="shippingbox" 
+                  android_material_icon_name="local-shipping" 
+                  size={64} 
+                  color={colors.textSecondary} 
+                />
+                <Text style={styles.emptyStateTitle}>No Requests Yet</Text>
+                <Text style={styles.emptyStateText}>
+                  Search for travelers going to your destination and send them a delivery request.
+                </Text>
+                <TouchableOpacity 
+                  style={styles.emptyStateButton}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push('/(tabs)/search');
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <IconSymbol 
+                    ios_icon_name="magnifyingglass" 
+                    android_material_icon_name="search" 
+                    size={20} 
+                    color="#FFFFFF" 
+                  />
+                  <Text style={styles.emptyStateButtonText}>Search Travelers</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              mockMyRequests.map((request, index) => (
+                <React.Fragment key={index}>
+                  <View style={styles.card}>
+                    {/* Status Badge */}
+                    <View style={[
+                      styles.statusBadge,
+                      request.status === 'accepted' ? styles.statusAccepted : styles.statusPending
+                    ]}>
+                      <Text style={styles.statusText}>
+                        {request.status === 'accepted' ? 'Accepted - Pay Now' : 'Pending'}
+                      </Text>
                     </View>
-                  </View>
 
-                  {/* Route */}
-                  <View style={styles.routeContainer}>
-                    <View style={styles.locationRow}>
+                    {/* Traveler Info */}
+                    <View style={styles.travelerRow}>
                       <IconSymbol 
-                        ios_icon_name="airplane.departure" 
-                        android_material_icon_name="flight-takeoff" 
-                        size={18} 
-                        color={colors.secondary} 
-                      />
-                      <Text style={styles.locationText}>{request.from}</Text>
-                    </View>
-                    <View style={styles.routeLine} />
-                    <View style={styles.locationRow}>
-                      <IconSymbol 
-                        ios_icon_name="airplane.arrival" 
-                        android_material_icon_name="flight-land" 
-                        size={18} 
+                        ios_icon_name="person.circle.fill" 
+                        android_material_icon_name="account-circle" 
+                        size={40} 
                         color={colors.primary} 
                       />
-                      <Text style={styles.locationText}>{request.to}</Text>
+                      <View style={styles.travelerInfo}>
+                        <Text style={styles.travelerLabel}>Traveler</Text>
+                        <Text style={styles.travelerName}>{request.traveler}</Text>
+                      </View>
                     </View>
-                  </View>
 
-                  {/* Date & Amount */}
-                  <View style={styles.detailsRow}>
-                    <View style={styles.detailItem}>
-                      <IconSymbol 
-                        ios_icon_name="calendar" 
-                        android_material_icon_name="calendar-today" 
-                        size={14} 
-                        color={colors.textSecondary} 
-                      />
-                      <Text style={styles.detailText}>{request.date}</Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <IconSymbol 
-                        ios_icon_name="dollarsign.circle" 
-                        android_material_icon_name="attach-money" 
-                        size={14} 
-                        color={colors.textSecondary} 
-                      />
-                      <Text style={styles.detailText}>${request.amount}</Text>
-                    </View>
-                  </View>
-
-                  {/* Actions */}
-                  <View style={styles.actionsRow}>
-                    {request.status === 'accepted' ? (
-                      <TouchableOpacity 
-                        style={styles.payButton} 
-                        activeOpacity={0.7}
-                        onPress={() => handlePayment(request)}
-                      >
+                    {/* Route */}
+                    <View style={styles.routeContainer}>
+                      <View style={styles.locationRow}>
                         <IconSymbol 
-                          ios_icon_name="creditcard.fill" 
-                          android_material_icon_name="payment" 
+                          ios_icon_name="airplane.departure" 
+                          android_material_icon_name="flight-takeoff" 
                           size={18} 
-                          color="#FFFFFF" 
+                          color={colors.secondary} 
                         />
-                        <Text style={styles.payButtonText}>Pay ${request.amount}</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <>
+                        <Text style={styles.locationText}>{request.from}</Text>
+                      </View>
+                      <View style={styles.routeLine} />
+                      <View style={styles.locationRow}>
+                        <IconSymbol 
+                          ios_icon_name="airplane.arrival" 
+                          android_material_icon_name="flight-land" 
+                          size={18} 
+                          color={colors.primary} 
+                        />
+                        <Text style={styles.locationText}>{request.to}</Text>
+                      </View>
+                    </View>
+
+                    {/* Date & Amount */}
+                    <View style={styles.detailsRow}>
+                      <View style={styles.detailItem}>
+                        <IconSymbol 
+                          ios_icon_name="calendar" 
+                          android_material_icon_name="calendar-today" 
+                          size={14} 
+                          color={colors.textSecondary} 
+                        />
+                        <Text style={styles.detailText}>{request.date}</Text>
+                      </View>
+                      <View style={styles.detailItem}>
+                        <IconSymbol 
+                          ios_icon_name="dollarsign.circle" 
+                          android_material_icon_name="attach-money" 
+                          size={14} 
+                          color={colors.textSecondary} 
+                        />
+                        <Text style={styles.detailText}>${request.amount}</Text>
+                      </View>
+                    </View>
+
+                    {/* Actions */}
+                    <View style={styles.actionsRow}>
+                      {request.status === 'accepted' ? (
                         <TouchableOpacity 
-                          style={styles.actionButton} 
+                          style={styles.payButton} 
                           activeOpacity={0.7}
-                          onPress={() => handleViewRequestDetails(request.id)}
+                          onPress={() => handlePayment(request)}
                         >
-                          <Text style={styles.actionButtonText}>View Details</Text>
+                          <IconSymbol 
+                            ios_icon_name="creditcard.fill" 
+                            android_material_icon_name="payment" 
+                            size={18} 
+                            color="#FFFFFF" 
+                          />
+                          <Text style={styles.payButtonText}>Pay ${request.amount}</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity 
-                          style={styles.actionButtonDanger} 
-                          activeOpacity={0.7}
-                          onPress={() => handleCancelRequest(request.id)}
-                        >
-                          <Text style={styles.actionButtonDangerText}>Cancel</Text>
-                        </TouchableOpacity>
-                      </>
-                    )}
+                      ) : (
+                        <>
+                          <TouchableOpacity 
+                            style={styles.actionButton} 
+                            activeOpacity={0.7}
+                            onPress={() => handleViewRequestDetails(request.id)}
+                          >
+                            <Text style={styles.actionButtonText}>View Details</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={styles.actionButtonDanger} 
+                            activeOpacity={0.7}
+                            onPress={() => handleCancelRequest(request.id)}
+                          >
+                            <Text style={styles.actionButtonDangerText}>Cancel</Text>
+                          </TouchableOpacity>
+                        </>
+                      )}
+                    </View>
                   </View>
-                </View>
-              </React.Fragment>
-            ))}
+                </React.Fragment>
+              ))
+            )}
           </View>
         )}
       </ScrollView>
@@ -394,6 +418,43 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: 16,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyStateTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 20,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  emptyStateText: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+  },
+  emptyStateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    boxShadow: '0px 4px 12px rgba(76, 175, 80, 0.3)',
+    elevation: 4,
+  },
+  emptyStateButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   card: {
     backgroundColor: colors.card,
