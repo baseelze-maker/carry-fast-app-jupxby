@@ -55,16 +55,20 @@ export default function TripsScreen() {
 
   const handleViewTripDetails = (tripId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log('Opening trip details for:', tripId);
-    router.push('/trips/trip-details');
+    console.log('Opening trip details for trip ID:', tripId);
+    router.push({
+      pathname: '/(tabs)/trips/trip-details',
+      params: { id: tripId, type: 'trip' }
+    });
   };
 
   const handleViewRequestDetails = (requestId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log('Opening request details for:', requestId);
-    // For now, navigate to trip details page
-    // In a real app, you would create a separate request-details page
-    router.push('/trips/trip-details');
+    console.log('Opening request details for request ID:', requestId);
+    router.push({
+      pathname: '/(tabs)/trips/trip-details',
+      params: { id: requestId, type: 'request' }
+    });
   };
 
   const handlePayment = (request: any) => {

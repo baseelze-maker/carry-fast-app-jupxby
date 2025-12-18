@@ -1,4 +1,4 @@
-l1 // https://docs.expo.dev/guides/using-eslint/
+: hul1 // https://docs.expo.dev/guides/using-eslint/
 module.exports = {
   extends: [
     'expo',
