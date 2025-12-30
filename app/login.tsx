@@ -26,7 +26,8 @@ export default function LoginScreen() {
   const { login } = useAuth();
 
   const handleLogin = async () => {
-    console.log('Login attempt with:', email);
+    console.log('🔐 Login button pressed');
+    console.log('📧 Email:', email);
     
     // Basic validation
     if (!email || !password) {
@@ -45,13 +46,14 @@ export default function LoginScreen() {
     }
 
     setIsLoading(true);
+    console.log('⏳ Starting login process...');
 
     try {
       // Call the login function from AuthContext
       const result = await login(email, password);
       
       if (result.error) {
-        console.error('Login failed:', result.error);
+        console.error('❌ Login failed with error:', result.error);
         
         // Provide more helpful error messages
         let errorTitle = 'Login Failed';
@@ -66,6 +68,9 @@ export default function LoginScreen() {
         } else if (result.error.toLowerCase().includes('user not found')) {
           errorTitle = 'Account Not Found';
           errorMessage = 'No account exists with this email address.\n\nPlease tap "Sign Up" below to create a new account.';
+        } else if (result.error.toLowerCase().includes('relation') || result.error.toLowerCase().includes('table')) {
+          errorTitle = 'Database Setup Required';
+          errorMessage = 'The database is not fully configured yet. Please check the console logs for setup instructions.';
         }
         
         Alert.alert(errorTitle, errorMessage, [
@@ -76,13 +81,15 @@ export default function LoginScreen() {
         ]);
         setIsLoading(false);
       } else {
-        console.log('Login successful, redirecting to home...');
-        // Navigate to home after successful login
-        router.replace('/(tabs)/(home)');
+        console.log('✅ Login successful, redirecting to home...');
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          router.replace('/(tabs)/(home)');
+        }, 100);
       }
     } catch (error) {
-      console.error('Unexpected login error:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      console.error('❌ Unexpected login error:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please check the console logs and try again.');
       setIsLoading(false);
     }
   };
